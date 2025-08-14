@@ -75,6 +75,7 @@
                 <argument name="websiteName" value="{{_defaultWebsite.name}}"/>
             </actionGroup>
             <deleteData createDataKey="stock" stepKey="deleteStock"/>
+            <deleteData createDataKey="customer" stepKey="deleteCustomer"/>
             <!--Disable source.-->
             <actionGroup ref="DisableAllSourcesActionGroup" stepKey="disableAllSources"/>
             <deleteData createDataKey="category" stepKey="deletecategory"/>

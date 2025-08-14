@@ -46,6 +46,7 @@
             </actionGroup>
             <actionGroup ref="AdminLogoutActionGroup" stepKey="logoutOfAdmin"/>
             <!--Delete category, product and stock.-->
+            <deleteData createDataKey="customer" stepKey="deleteCustomer"/>
             <deleteData createDataKey="category" stepKey="deleteCategory"/>
             <deleteData createDataKey="configurableProduct" stepKey="deleteConfigurable"/>
             <deleteData createDataKey="additionalStockMainWebsite" stepKey="deleteMainWebsiteStock"/>

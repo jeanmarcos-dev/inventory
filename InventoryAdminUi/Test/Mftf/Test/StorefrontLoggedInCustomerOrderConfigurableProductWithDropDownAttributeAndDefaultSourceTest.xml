@@ -65,6 +65,7 @@
             <deleteData createDataKey="configurableProduct" stepKey="deleteConfigurableProduct"/>
             <deleteData createDataKey="configurableChildProduct" stepKey="deleteConfigurableProductVariation"/>
             <deleteData createDataKey="configurableProductAttribute" stepKey="deleteConfigurableProductAttribute"/>
+            <deleteData createDataKey="customer" stepKey="deleteCustomer"/>
             <!--Disable source.-->
             <actionGroup ref="DisableSourceActionGroup" stepKey="disableSource">
                 <argument name="sourceCode" value="$source.source[source_code]$"/>

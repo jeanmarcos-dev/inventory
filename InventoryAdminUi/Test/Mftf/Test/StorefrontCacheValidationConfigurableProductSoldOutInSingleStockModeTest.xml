@@ -57,6 +57,7 @@
             <deleteData createDataKey="configurableChildProduct" stepKey="deleteConfigurableProductVariation"/>
             <deleteData createDataKey="configurableProductAttribute" stepKey="deleteConfigurableProductAttribute"/>
             <deleteData createDataKey="category" stepKey="deletecategory"/>
+            <deleteData createDataKey="customer" stepKey="deleteCustomer"/>
             <actionGroup ref="CliIndexerReindexActionGroup" stepKey="reindex">
                 <argument name="indices" value=""/>
             </actionGroup>

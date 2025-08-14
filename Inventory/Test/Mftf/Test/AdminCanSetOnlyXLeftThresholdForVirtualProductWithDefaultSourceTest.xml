@@ -71,6 +71,7 @@
                 <argument name="websiteName" value="{{_defaultWebsite.name}}"/>
             </actionGroup>
             <deleteData createDataKey="createCategory1" stepKey="deletecreateCategory1"/>
+            <deleteData createDataKey="customer" stepKey="deleteCustomer"/>
             <actionGroup ref="AdminLogoutActionGroup" stepKey="logoutOfAdmin1"/>
         </after>
 

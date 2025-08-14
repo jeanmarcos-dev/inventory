@@ -35,6 +35,7 @@
 
             <deleteData createDataKey="createProduct1" stepKey="deleteProduct1"/>
             <deleteData createDataKey="createCategory1" stepKey="deleteCategory1"/>
+            <deleteData createDataKey="createCustomer1" stepKey="deleteCustomer"/>
         </after>
 
         <amOnPage url="{{AdminProductIndexPage.url}}" stepKey="goToProductGridPage1"/>

@@ -61,6 +61,7 @@
             <deleteData createDataKey="configurableProduct" stepKey="deleteConfigurableProduct"/>
             <deleteData createDataKey="configurableChildProduct" stepKey="deleteConfigurableProductVariation"/>
             <deleteData createDataKey="configurableProductAttribute" stepKey="deleteConfigurableProductAttribute"/>
+            <deleteData createDataKey="customer" stepKey="deleteCustomer"/>
             <!--Disable source.-->
             <actionGroup ref="DisableAllSourcesActionGroup" stepKey="disableSources"/>
             <deleteData createDataKey="category" stepKey="deletecategory"/>
