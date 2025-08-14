@@ -107,7 +107,11 @@
                 <argument name="websiteName" value="{{_defaultWebsite.name}}"/>
             </actionGroup>
             <deleteData createDataKey="stock" stepKey="deleteStock"/>
-            <actionGroup ref="DisableAllSourcesActionGroup" stepKey="disableAllSources"/>
+            <actionGroup ref="DisableAllSourcesActionGroup" stepKey="disableAllSources"/>            <!--Delete customer created during test execution-->
+            <actionGroup ref="AdminDeleteCustomerActionGroup" stepKey="deleteCustomerFromGrid">
+                <argument name="customerEmail" value="{{Simple_US_Customer.email}}"/>
+            </actionGroup>
+
             <actionGroup ref="AdminLogoutActionGroup" stepKey="logoutOfAdmin"/>
             <actionGroup ref="CliIndexerReindexActionGroup" stepKey="reindex">
                 <argument name="indices" value=""/>

@@ -81,7 +81,11 @@
             </actionGroup>
             <actionGroup ref="DisableSourceActionGroup" stepKey="disableCreatedSource">
                 <argument name="sourceCode" value="$$createSource.source[source_code]$$"/>
+            </actionGroup>            <!--Delete customer created during test execution-->
+            <actionGroup ref="AdminDeleteCustomerActionGroup" stepKey="deleteCustomerFromGrid">
+                <argument name="customerEmail" value="{{MsiCustomer1.email}}"/>
             </actionGroup>
+
             <actionGroup ref="AdminLogoutActionGroup" stepKey="logoutOfAdmin1"/>
             <magentoCLI
                 command="config:set {{StorefrontDisableAddStoreCodeToUrls.path}} {{StorefrontDisableAddStoreCodeToUrls.value}}"

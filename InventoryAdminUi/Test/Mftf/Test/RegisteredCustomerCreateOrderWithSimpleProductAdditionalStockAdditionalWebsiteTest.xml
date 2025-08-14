@@ -20,6 +20,13 @@
             <group value="pr_exclude"/>
         </annotations>
 
+        <after>
+            <!--Delete customer created during test execution-->
+            <actionGroup ref="AdminDeleteCustomerActionGroup" stepKey="deleteCustomerFromGrid">
+                <argument name="customerEmail" value="{{Simple_US_Customer.email}}"/>
+            </actionGroup>
+        </after>
+
         <!--Register customer.-->
         <actionGroup ref="RegisterCustomOnStorefrontActionGroup" stepKey="registerCustomer">
             <argument name="Customer" value="Simple_US_Customer"/>
