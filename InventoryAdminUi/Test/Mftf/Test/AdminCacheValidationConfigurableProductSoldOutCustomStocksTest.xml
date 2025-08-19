@@ -18,7 +18,6 @@
             <group value="msi"/>
             <group value="multi_mode"/>
         </annotations>
-
         <before>
             <!--Create category and customer.-->
             <createData entity="SimpleSubCategory" stepKey="category"/>
@@ -54,7 +53,6 @@
                 <argument name="indices" value=""/>
             </actionGroup>
         </after>
-
         <!--Assign category and create configurable variations.-->
         <actionGroup ref="AdminLoginActionGroup" stepKey="loginToAdminPanel"/>
         <amOnPage url="{{AdminProductEditPage.url($$configurableProduct.id$$)}}" stepKey="openConfigurableProductEditPage"/>
@@ -111,7 +109,6 @@
         <actionGroup ref="StorefrontClickOrderLinkFromCheckoutSuccessPageActionGroup" stepKey="clickOrderLink"/>
         <comment userInput="BIC workaround" stepKey="grabOrderNumber"/>
         <grabFromCurrentUrl regex="~/order_id/(\d+)/~" stepKey="orderId"/>
-
         <!-- Source Selection -->
         <actionGroup ref="AdminOpenOrderByEntityIdActionGroup" stepKey="openOrder">
             <argument name="entityId" value="{$orderId}"/>

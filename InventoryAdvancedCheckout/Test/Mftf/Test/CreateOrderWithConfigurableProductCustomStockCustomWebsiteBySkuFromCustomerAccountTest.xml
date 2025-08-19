@@ -92,11 +92,7 @@
             <!--Delete created website.-->
             <actionGroup ref="AdminDeleteWebsiteActionGroup" stepKey="deleteWebsite" before="logout">
                 <argument name="websiteName" value="{{customWebsite.name}}"/>
-            </actionGroup>            <!--Delete customer created during test execution-->
-            <actionGroup ref="AdminDeleteCustomerActionGroup" stepKey="deleteCustomerFromGrid">
-                <argument name="customerEmail" value="{{Simple_US_Customer.email}}"/>
             </actionGroup>
-
             <actionGroup ref="AdminLogoutActionGroup" stepKey="logout" before="deleteStock"/>
             <deleteData createDataKey="additionalStock" stepKey="deleteStock" before="deleteConfigChildProductOne"/>
             <!--Revert "Add Store Code To URL" configuration.-->

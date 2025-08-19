@@ -18,7 +18,6 @@
             <group value="msi"/>
             <group value="multi_mode"/>
         </annotations>
-
         <before>
             <!--Create test data.-->
             <createData entity="SimpleSubCategory" stepKey="category"/>
@@ -95,7 +94,6 @@
                 <argument name="indices" value=""/>
             </actionGroup>
         </after>
-
         <!--Add configurable product to cart.-->
         <actionGroup ref="LoginToStorefrontActionGroup" stepKey="loginAsCustomer">
             <argument name="Customer" value="$customer$" />
