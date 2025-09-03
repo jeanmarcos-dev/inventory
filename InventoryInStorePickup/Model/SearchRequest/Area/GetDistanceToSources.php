@@ -15,6 +15,7 @@ use Magento\InventoryInStorePickupApi\Model\SearchRequest\Area\Pipeline;
 use Magento\InventorySourceSelectionApi\Api\Data\AddressInterface;
 use Magento\InventorySourceSelectionApi\Api\Data\AddressInterfaceFactory;
 use Psr\Log\LoggerInterface;
+use Magento\Framework\App\ObjectManager;
 
 /**
  * Provide associated list of Source codes and distance to them in KM.
@@ -58,14 +59,14 @@ class GetDistanceToSources
      * @param GetOrderedDistanceToSources $getOrderedDistanceToSources
      * @param AddressInterfaceFactory $addressInterfaceFactory
      * @param Pipeline $searchTermPipeline
-     * @param Logger $logger
+     * @param LoggerInterface $logger
      */
     public function __construct(
         GetLatsLngsFromAddressInterface $getLatsLngsFromAddress,
         GetOrderedDistanceToSources $getOrderedDistanceToSources,
         AddressInterfaceFactory $addressInterfaceFactory,
         Pipeline $searchTermPipeline,
-        LoggerInterface $logger
+        LoggerInterface $logger = null
     ) {
         $this->getLatsLngsFromAddress = $getLatsLngsFromAddress;
         $this->getOrderedDistanceToSources = $getOrderedDistanceToSources;
