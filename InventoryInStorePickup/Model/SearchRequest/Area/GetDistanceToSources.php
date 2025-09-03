@@ -66,7 +66,7 @@ class GetDistanceToSources
         GetOrderedDistanceToSources $getOrderedDistanceToSources,
         AddressInterfaceFactory $addressInterfaceFactory,
         Pipeline $searchTermPipeline,
-        LoggerInterface $logger = null
+        ?LoggerInterface $logger = null
     ) {
         $this->getLatsLngsFromAddress = $getLatsLngsFromAddress;
         $this->getOrderedDistanceToSources = $getOrderedDistanceToSources;
