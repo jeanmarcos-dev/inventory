@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
+ */
+-->
+<logging xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Logging:etc/logging.xsd">
+    <groups>
+        <group name="catalog_products">
+            <expected_models>
+                <expected_model class="Magento\Inventory\Model\SourceItem">
+                    <additional_fields>
+                        <field name="source_item_id" />
+                        <field name="source_code" />
+                        <field name="sku" />
+                        <field name="quantity" />
+                        <field name="status" />
+                    </additional_fields>
+                </expected_model>
+            </expected_models>
+        </group>
+    </groups>
+</logging>
