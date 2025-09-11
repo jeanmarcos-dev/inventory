@@ -1,10 +1,12 @@
 {
-    "name": "magento/module-inventory",
+    "name": "magento/module-inventory-logging",
     "description": "N/A",
     "require": {
         "php": "~8.2.0||~8.3.0||~8.4.0",
-        "magento/framework": "*",
-        "magento/module-inventory-api": "*"
+        "magento/framework": "*"
+    },
+    "suggest": {
+        "magento/module-logging": "*"
     },
     "type": "magento2-module",
     "license": [
@@ -16,7 +18,7 @@
             "registration.php"
         ],
         "psr-4": {
-            "Magento\\Inventory\\": ""
+            "Magento\\InventoryLogging\\": ""
         }
     }
 }
