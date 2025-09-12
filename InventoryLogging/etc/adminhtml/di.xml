@@ -6,4 +6,7 @@
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Logging\Model\Config">
+        <plugin name="inventory_source_item_logging" type="Magento\InventoryLogging\Plugin\Logging\Model\ConfigPlugin"/>
+    </type>
 </config>
