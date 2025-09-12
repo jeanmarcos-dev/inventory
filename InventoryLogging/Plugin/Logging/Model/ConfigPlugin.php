@@ -21,6 +21,7 @@ class ConfigPlugin
      * @param mixed $result
      * @param string $groupName
      * @return mixed
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function afterGetEventGroupConfig(Config $subject, mixed $result, string $groupName): mixed
     {
