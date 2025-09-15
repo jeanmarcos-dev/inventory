@@ -34,6 +34,9 @@ class ConfigPluginTest extends TestCase
      */
     public function testAfterGetEventGroupConfigWithAffectedGroupName(): void
     {
+        if (!class_exists(Config::class)) {
+            $this->markTestSkipped('Logging module not available.');
+        }
         $subject = $this->createMock(Config::class);
         $result = [
             'expected_models' => [
@@ -53,6 +56,9 @@ class ConfigPluginTest extends TestCase
      */
     public function testAfterGetEventGroupConfigReturnsUnchangedResultForNonAffectedGroup(): void
     {
+        if (!class_exists(Config::class)) {
+            $this->markTestSkipped('Logging module not available.');
+        }
         $subject = $this->createMock(Config::class);
         $result = ['expected_models' => []];
         $groupName = 'unrelated_group';
