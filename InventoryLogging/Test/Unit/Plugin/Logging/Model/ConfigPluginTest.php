@@ -11,7 +11,6 @@ use Magento\Framework\Module\Manager;
 use Magento\InventoryLogging\Plugin\Logging\Model\ConfigPlugin;
 use Magento\Inventory\Model\SourceItem;
 use Magento\Logging\Model\Config;
-use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 
@@ -30,18 +29,27 @@ class ConfigPluginTest extends TestCase
         $this->configPlugin = new ConfigPlugin();
         parent::setUp();
     }
+
+    /**
+     * @return void
+     */
+    public static function setUpBeforeClass(): void
+    {
+        $bootstrap = \Magento\Framework\App\Bootstrap::create(BP, $_SERVER);
+        $objectManager = $bootstrap->getObjectManager();
+        /** @var Manager $moduleManager */
+        $moduleManager = $objectManager->get(Manager::class);
+        if (!$moduleManager->isEnabled('Magento_Logging')) {
+            self::markTestSkipped('Magento_Logging module disabled.');
+        }
+    }
+
     /**
      * @return void
      * @throws Exception
      */
     public function testAfterGetEventGroupConfigWithAffectedGroupName(): void
     {
-        $objectManager = Bootstrap::getObjectManager();
-        /** @var Manager $moduleManager */
-        $moduleManager = $objectManager->get(Manager::class);
-        if (!$moduleManager->isEnabled('Magento_Logging')) {
-            self::markTestSkipped('Magento_Logging module disabled.');
-        }
         $subject = $this->createMock(Config::class);
         $result = [
             'expected_models' => [
@@ -61,12 +69,6 @@ class ConfigPluginTest extends TestCase
      */
     public function testAfterGetEventGroupConfigReturnsUnchangedResultForNonAffectedGroup(): void
     {
-        $objectManager = Bootstrap::getObjectManager();
-        /** @var Manager $moduleManager */
-        $moduleManager = $objectManager->get(Manager::class);
-        if (!$moduleManager->isEnabled('Magento_Logging')) {
-            self::markTestSkipped('Magento_Logging module disabled.');
-        }
         $subject = $this->createMock(Config::class);
         $result = ['expected_models' => []];
         $groupName = 'unrelated_group';
