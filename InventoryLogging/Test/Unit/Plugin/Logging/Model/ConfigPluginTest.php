@@ -7,9 +7,11 @@ declare(strict_types=1);
 
 namespace Magento\InventoryLogging\Test\Unit\Plugin\Logging\Model;
 
+use Magento\Framework\Module\Manager;
 use Magento\InventoryLogging\Plugin\Logging\Model\ConfigPlugin;
 use Magento\Inventory\Model\SourceItem;
 use Magento\Logging\Model\Config;
+use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 
@@ -34,8 +36,11 @@ class ConfigPluginTest extends TestCase
      */
     public function testAfterGetEventGroupConfigWithAffectedGroupName(): void
     {
-        if (!class_exists(Config::class)) {
-            $this->markTestSkipped('Logging module not available.');
+        $objectManager = Bootstrap::getObjectManager();
+        /** @var Manager $moduleManager */
+        $moduleManager = $objectManager->get(Manager::class);
+        if (!$moduleManager->isEnabled('Magento_Logging')) {
+            self::markTestSkipped('Magento_Logging module disabled.');
         }
         $subject = $this->createMock(Config::class);
         $result = [
@@ -56,8 +61,11 @@ class ConfigPluginTest extends TestCase
      */
     public function testAfterGetEventGroupConfigReturnsUnchangedResultForNonAffectedGroup(): void
     {
-        if (!class_exists(Config::class)) {
-            $this->markTestSkipped('Logging module not available.');
+        $objectManager = Bootstrap::getObjectManager();
+        /** @var Manager $moduleManager */
+        $moduleManager = $objectManager->get(Manager::class);
+        if (!$moduleManager->isEnabled('Magento_Logging')) {
+            self::markTestSkipped('Magento_Logging module disabled.');
         }
         $subject = $this->createMock(Config::class);
         $result = ['expected_models' => []];
