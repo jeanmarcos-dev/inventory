@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace Magento\InventoryLogging\Test\Unit\Plugin\Logging\Model;
 
-use Magento\Framework\Module\Manager;
 use Magento\InventoryLogging\Plugin\Logging\Model\ConfigPlugin;
 use Magento\Inventory\Model\SourceItem;
 use Magento\Logging\Model\Config;
@@ -35,12 +34,8 @@ class ConfigPluginTest extends TestCase
      */
     public static function setUpBeforeClass(): void
     {
-        $bootstrap = \Magento\Framework\App\Bootstrap::create(BP, $_SERVER);
-        $objectManager = $bootstrap->getObjectManager();
-        /** @var Manager $moduleManager */
-        $moduleManager = $objectManager->get(Manager::class);
-        if (!$moduleManager->isEnabled('Magento_Logging')) {
-            self::markTestSkipped('Magento_Logging module disabled.');
+        if (!class_exists(Config::class)) {
+            self::markTestSkipped('Magento_Logging module not available.');
         }
     }
 
