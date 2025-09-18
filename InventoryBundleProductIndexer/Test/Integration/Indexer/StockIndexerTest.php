@@ -20,6 +20,7 @@ use Magento\InventoryApi\Test\Fixture\Stock as StockFixture;
 use Magento\InventoryApi\Test\Fixture\StockSourceLinks as StockSourceLinksFixture;
 use Magento\InventoryBundleProductIndexer\Indexer\StockIndexer;
 use Magento\InventoryIndexer\Model\ResourceModel\GetStockItemData;
+use Magento\InventoryReservations\Test\Fixture\Reservation as ReservationFixture;
 use Magento\InventorySalesApi\Model\GetStockItemDataInterface;
 use Magento\InventorySalesApi\Test\Fixture\StockSalesChannels as StockSalesChannelsFixture;
 use Magento\TestFramework\Fixture\DataFixture;
@@ -27,8 +28,12 @@ use Magento\TestFramework\Fixture\DataFixtureStorage;
 use Magento\TestFramework\Fixture\DataFixtureStorageManager;
 use Magento\TestFramework\Fixture\DbIsolation;
 use Magento\TestFramework\Helper\Bootstrap;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+#[
+    CoversClass(StockIndexer::class),
+]
 class StockIndexerTest extends TestCase
 {
     /**
@@ -82,23 +87,42 @@ class StockIndexerTest extends TestCase
             ['stock_id' => '$stock2.stock_id$', 'sales_channels' => ['base']]
         ),
 
-        DataFixture(ProductFixture::class, ['sku' => 'simple1'], 's1'),
+        DataFixture(
+            ProductFixture::class,
+            ['sku' => 'simple1', 'stock_item' => ['use_config_min_qty' => 0, 'min_qty' => 2]],
+            's1'
+        ),
         DataFixture(ProductFixture::class, ['sku' => 'simple2'], 's2'),
         DataFixture(ProductFixture::class, ['sku' => 'simple3'], 's3'),
         DataFixture(ProductFixture::class, ['sku' => 'simple4'], 's4'),
         DataFixture(
             SourceItemsFixture::class,
             [
-                ['sku' => '$s1.sku$', 'source_code' => '$source2.source_code$', 'quantity' => 100],
-                ['sku' => '$s1.sku$', 'source_code' => '$source3.source_code$', 'quantity' => 100],
-                ['sku' => '$s2.sku$', 'source_code' => '$source2.source_code$', 'quantity' => 100],
-                ['sku' => '$s2.sku$', 'source_code' => '$source3.source_code$', 'quantity' => 100],
-                ['sku' => '$s3.sku$', 'source_code' => '$source2.source_code$', 'quantity' => 100],
-                ['sku' => '$s3.sku$', 'source_code' => '$source3.source_code$', 'quantity' => 100],
-                ['sku' => '$s4.sku$', 'source_code' => '$source2.source_code$', 'quantity' => 100],
-                ['sku' => '$s4.sku$', 'source_code' => '$source3.source_code$', 'quantity' => 100],
+                ['sku' => '$s1.sku$', 'source_code' => '$source2.source_code$', 'quantity' => 5],
+                ['sku' => '$s1.sku$', 'source_code' => '$source3.source_code$', 'quantity' => 0],
+                ['sku' => '$s2.sku$', 'source_code' => '$source2.source_code$', 'quantity' => 5],
+                ['sku' => '$s2.sku$', 'source_code' => '$source3.source_code$', 'quantity' => 0],
+                ['sku' => '$s3.sku$', 'source_code' => '$source2.source_code$', 'quantity' => 3],
+                ['sku' => '$s3.sku$', 'source_code' => '$source3.source_code$', 'quantity' => 0],
+                ['sku' => '$s4.sku$', 'source_code' => '$source2.source_code$', 'quantity' => 3],
+                ['sku' => '$s4.sku$', 'source_code' => '$source3.source_code$', 'quantity' => 0],
             ]
         ),
+        DataFixture(
+            ReservationFixture::class,
+            [
+                'stock_id' => '$stock2.stock_id$',
+                'sku' => '$s2.sku$',
+                'quantity' => -2,
+                'metadata' => [
+                    'event_type' => 'shipment_created',
+                    'object_type' => 'order',
+                    'object_id' => '1',
+                    'object_increment_id' => '100000001',
+                ],
+            ]
+        ),
+
         DataFixture(
             BundleSelectionFixture::class,
             ['sku' => '$s1.sku$', 'qty' => 3, 'can_change_quantity' => 0],
@@ -156,43 +180,49 @@ class StockIndexerTest extends TestCase
     public static function executeListDataProvider(): array
     {
         return [
+            [[], true],
             [
                 [
-                    'simple1' => ['s2' => 3, 's3' => 0],
-                    'simple2' => ['s2' => 3, 's3' => 0],
-                    'simple3' => ['s2' => 3, 's3' => 0],
-                    'simple4' => ['s2' => 3, 's3' => 0],
-                ],
-                true,
-            ],
-            [
-                [
-                    'simple1' => ['s2' => 1, 's3' => 2],
-                    'simple2' => ['s2' => 1, 's3' => 2],
-                    'simple3' => ['s2' => 1, 's3' => 2],
-                    'simple4' => ['s2' => 1, 's3' => 2],
+                    'simple1' => ['s2' => 3, 's3' => 2],
+                    'simple2' => ['s2' => 0, 's3' => 0],
                 ],
                 true,
             ],
             [
                 [
                     'simple1' => ['s2' => 0, 's3' => 0],
-                    'simple3' => ['s2' => 1, 's3' => 1],
-                    'simple4' => ['s2' => 0, 's3' => 0],
+                    'simple2' => ['s2' => 2, 's3' => 3],
                 ],
                 true,
             ],
             [
+                ['simple3' => ['s2' => 1, 's3' => 2]],
+                true,
+            ],
+            [
+                ['simple3' => ['s2' => 1, 's3' => 0]],
+                true,
+            ],
+            [
+                ['simple4' => ['s2' => 0, 's3' => 0]],
+                true,
+            ],
+            [
                 [
-                    'simple1' => ['s2' => 1, 's3' => 1],
-                    'simple2' => ['s2' => 1, 's3' => 1],
+                    'simple1' => ['s2' => 4, 's3' => 0],
+                    'simple2' => ['s2' => 0, 's3' => 4],
                 ],
                 false,
             ],
             [
                 [
-                    'simple3' => ['s2' => 0, 's3' => 0],
+                    'simple1' => ['s2' => 2, 's3' => 2],
+                    'simple2' => ['s2' => 2, 's3' => 2],
                 ],
+                false,
+            ],
+            [
+                ['simple3' => ['s2' => 0, 's3' => 0]],
                 false,
             ],
         ];

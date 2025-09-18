@@ -9,11 +9,12 @@ namespace Magento\InventoryBundleProductIndexer\Indexer;
 
 use ArrayIterator;
 use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\Exception\StateException;
 use Magento\InventoryCatalogApi\Api\DefaultStockProviderInterface;
 use Magento\InventoryIndexer\Indexer\InventoryIndexer;
 use Magento\InventoryIndexer\Indexer\SiblingProductsProviderInterface;
 use Magento\InventoryIndexer\Indexer\Stock\GetAllStockIds;
+use Magento\InventoryIndexer\Indexer\Stock\PrepareReservationsIndexData;
+use Magento\InventoryIndexer\Indexer\Stock\ReservationsIndexTable;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\Alias;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexHandlerInterface;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexNameBuilder;
@@ -25,60 +26,31 @@ use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexStructureInterface;
 class StockIndexer
 {
     /**
-     * @var GetAllStockIds
-     */
-    private $getAllStockIds;
-
-    /**
-     * @var IndexStructureInterface
-     */
-    private $indexStructure;
-
-    /**
-     * @var IndexHandlerInterface
-     */
-    private $indexHandler;
-
-    /**
-     * @var IndexNameBuilder
-     */
-    private $indexNameBuilder;
-
-    /**
-     * @var DefaultStockProviderInterface
-     */
-    private $defaultStockProvider;
-
-    /**
-     * $indexStructure is reserved name for construct variable in index internal mechanism.
-     *
      * @param GetAllStockIds $getAllStockIds
      * @param IndexStructureInterface $indexStructure
      * @param IndexHandlerInterface $indexHandler
      * @param IndexNameBuilder $indexNameBuilder
      * @param DefaultStockProviderInterface $defaultStockProvider
      * @param SiblingProductsProviderInterface $productsProvider
+     * @param ReservationsIndexTable $reservationsIndexTable
+     * @param PrepareReservationsIndexData $prepareReservationsIndexData
      */
     public function __construct(
-        GetAllStockIds $getAllStockIds,
-        IndexStructureInterface $indexStructure,
-        IndexHandlerInterface $indexHandler,
-        IndexNameBuilder $indexNameBuilder,
-        DefaultStockProviderInterface $defaultStockProvider,
+        private readonly GetAllStockIds $getAllStockIds,
+        private readonly IndexStructureInterface $indexStructure,
+        private readonly IndexHandlerInterface $indexHandler,
+        private readonly IndexNameBuilder $indexNameBuilder,
+        private readonly DefaultStockProviderInterface $defaultStockProvider,
         private readonly SiblingProductsProviderInterface $productsProvider,
+        private readonly ReservationsIndexTable $reservationsIndexTable,
+        private readonly PrepareReservationsIndexData $prepareReservationsIndexData,
     ) {
-        $this->getAllStockIds = $getAllStockIds;
-        $this->indexStructure = $indexStructure;
-        $this->indexHandler = $indexHandler;
-        $this->indexNameBuilder = $indexNameBuilder;
-        $this->defaultStockProvider = $defaultStockProvider;
     }
 
     /**
      * Index bundle products for all stocks.
      *
      * @return void
-     * @throws StateException
      */
     public function executeFull()
     {
@@ -92,7 +64,6 @@ class StockIndexer
      * @param int $stockId
      * @param array $skuList
      * @return void
-     * @throws StateException
      */
     public function executeRow(int $stockId, array $skuList = [])
     {
@@ -105,7 +76,6 @@ class StockIndexer
      * @param array $stockIds
      * @param array $skuList
      * @return void
-     * @throws StateException
      */
     public function executeList(array $stockIds, array $skuList = [])
     {
@@ -124,18 +94,22 @@ class StockIndexer
                 $this->indexStructure->create($mainIndexName, ResourceConnection::DEFAULT_CONNECTION);
             }
 
+            $this->reservationsIndexTable->createTable($stockId);
+            $this->prepareReservationsIndexData->execute($stockId);
+
             $data = $this->productsProvider->getData($mainIndexName, $skuList);
             $this->indexHandler->cleanIndex(
                 $mainIndexName,
                 new ArrayIterator($skuList),
                 ResourceConnection::DEFAULT_CONNECTION
             );
-
             $this->indexHandler->saveIndex(
                 $mainIndexName,
                 new ArrayIterator($data),
                 ResourceConnection::DEFAULT_CONNECTION
             );
+
+            $this->reservationsIndexTable->dropTable($stockId);
         }
     }
 }
