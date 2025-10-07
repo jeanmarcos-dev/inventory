@@ -42,7 +42,7 @@ class GetSalabilityDataForUpdate
      * Get stock status changes for given reservation.
      *
      * @param ReservationData $reservationData
-     * @return bool[] - ['sku' => bool]
+     * @return array<string, bool> - ['sku' => bool]
      */
     public function execute(ReservationData $reservationData): array
     {
