@@ -73,9 +73,13 @@ class IsBundleProductChildrenSalable
         $optionCollection->setProductIdFilter($productId);
         /** @var Option[] $options */
         $options = $optionCollection->getItems();
+        $optionIds = array_keys($options);
+        if (!$optionIds) {
+            return [];
+        }
 
         $selectionCollection = $this->selectionCollectionFactory->create();
-        $selectionCollection->setOptionIdsFilter(array_keys($options));
+        $selectionCollection->setOptionIdsFilter($optionIds);
         /** @var \Magento\Catalog\Model\Product[]|\Magento\Bundle\Model\Selection[] $selections */
         $selections = $selectionCollection->getItems();
         foreach ($selections as $selection) {
@@ -97,7 +101,7 @@ class IsBundleProductChildrenSalable
         $isSalable = false;
 
         /** @var \Magento\Catalog\Model\Product|\Magento\Bundle\Model\Selection $selection */
-        foreach ($option->getSelections() as $selection) {
+        foreach ((array) $option->getSelections() as $selection) {
             $qty = $selection->getSelectionCanChangeQty() ? 1 : (float) $selection->getSelectionQty();
             $isSalable = $this->isProductSalableForRequestedQty->execute($selection->getSku(), $stockId, $qty)
                 ->isSalable();
