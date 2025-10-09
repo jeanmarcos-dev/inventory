@@ -9,6 +9,7 @@ namespace Magento\InventoryBundleProduct\Model;
 
 use Magento\Bundle\Model\Option;
 use Magento\Bundle\Model\ResourceModel\Option\CollectionFactory as OptionCollectionFactory;
+use Magento\Bundle\Model\ResourceModel\Selection\Collection\FilterApplier as SelectionCollectionFilterApplier;
 use Magento\Bundle\Model\ResourceModel\Selection\CollectionFactory as SelectionCollectionFactory;
 use Magento\InventoryCatalogApi\Model\GetProductIdsBySkusInterface;
 use Magento\InventorySalesApi\Api\IsProductSalableForRequestedQtyInterface;
@@ -19,12 +20,14 @@ class IsBundleProductChildrenSalable
      * @param GetProductIdsBySkusInterface $getProductIdsBySkus
      * @param OptionCollectionFactory $optionCollectionFactory
      * @param SelectionCollectionFactory $selectionCollectionFactory
+     * @param SelectionCollectionFilterApplier $selectionCollectionFilterApplier
      * @param IsProductSalableForRequestedQtyInterface $isProductSalableForRequestedQty
      */
     public function __construct(
         private readonly GetProductIdsBySkusInterface $getProductIdsBySkus,
         private readonly OptionCollectionFactory $optionCollectionFactory,
         private readonly SelectionCollectionFactory $selectionCollectionFactory,
+        private readonly SelectionCollectionFilterApplier $selectionCollectionFilterApplier,
         private readonly IsProductSalableForRequestedQtyInterface $isProductSalableForRequestedQty,
     ) {
     }
@@ -79,6 +82,11 @@ class IsBundleProductChildrenSalable
         }
 
         $selectionCollection = $this->selectionCollectionFactory->create();
+        $this->selectionCollectionFilterApplier->apply(
+            $selectionCollection,
+            'parent_product_id',
+            array_values($options)[0]->getParentId()
+        );
         $selectionCollection->setOptionIdsFilter($optionIds);
         /** @var \Magento\Catalog\Model\Product[]|\Magento\Bundle\Model\Selection[] $selections */
         $selections = $selectionCollection->getItems();
