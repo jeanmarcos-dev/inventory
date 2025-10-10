@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Magento\Inventory\Model\SourceItem\Command\Handler;
 
 use Exception;
-use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Validation\ValidationException;
@@ -38,26 +37,18 @@ class SourceItemsSaveHandler
     private $logger;
 
     /**
-     * @var ManagerInterface
-     */
-    private ManagerInterface $eventManager;
-
-    /**
      * @param SourceItemsValidator $sourceItemsValidator
      * @param SaveMultiple $saveMultiple
      * @param LoggerInterface $logger
-     * @param ManagerInterface $eventManager
      */
     public function __construct(
         SourceItemsValidator $sourceItemsValidator,
         SaveMultiple $saveMultiple,
-        LoggerInterface $logger,
-        ManagerInterface $eventManager
+        LoggerInterface $logger
     ) {
         $this->sourceItemsValidator = $sourceItemsValidator;
         $this->saveMultiple = $saveMultiple;
         $this->logger = $logger;
-        $this->eventManager = $eventManager;
     }
 
     /**
@@ -83,9 +74,6 @@ class SourceItemsSaveHandler
 
         try {
             $this->saveMultiple->execute($sourceItems);
-            foreach ($sourceItems as $sourceItem) {
-                $this->eventManager->dispatch('model_save_after', ['object' => $sourceItem]);
-            }
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
             throw new CouldNotSaveException(__('Could not save Source Item'), $e);
