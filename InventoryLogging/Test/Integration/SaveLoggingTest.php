@@ -10,8 +10,6 @@ namespace Magento\InventoryLogging\Test\Integration;
 use Magento\Catalog\Model\Product\Type;
 use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\ObjectManagerInterface;
-use Magento\TestFramework\Fixture\DataFixtureStorage;
-use Magento\TestFramework\Fixture\DataFixtureStorageManager;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\TestFramework\TestCase\AbstractBackendController;
 use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
@@ -24,11 +22,6 @@ class SaveLoggingTest extends AbstractBackendController
     private ObjectManagerInterface $objectManager;
 
     /**
-     * @var DataFixtureStorage
-     */
-    private DataFixtureStorage $fixtures;
-
-    /**
      * @inheritDoc
      */
     protected function setUp(): void
@@ -36,7 +29,6 @@ class SaveLoggingTest extends AbstractBackendController
         parent::setUp();
         $this->objectManager = Bootstrap::getObjectManager();
         $this->resource = $this->objectManager->get(ProductResource::class);
-        $this->fixtures = $this->objectManager->get(DataFixtureStorageManager::class)->getStorage();
     }
 
     /**
