@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025
+ * Copyright 2025 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -89,7 +89,8 @@ class OnlyXLeftInStockResolverTest extends TestCase
             ->with($sku, $stockId)
             ->willReturn($salableQty);
 
-        $result = $this->resolver->resolve($this->fieldMock, null, $this->resolveInfoMock, ['model' => $this->productMock]);
+        $result = $this->resolver
+            ->resolve($this->fieldMock, null, $this->resolveInfoMock, ['model' => $this->productMock]);
         $this->assertSame($salableQty, $result);
     }
 
@@ -114,7 +115,8 @@ class OnlyXLeftInStockResolverTest extends TestCase
             ->with($sku, $stockId)
             ->willReturn($salableQty);
 
-        $result = $this->resolver->resolve($this->fieldMock, null, $this->resolveInfoMock, ['model' => $this->productMock]);
+        $result = $this->resolver
+            ->resolve($this->fieldMock, null, $this->resolveInfoMock, ['model' => $this->productMock]);
         $this->assertNull($result);
     }
 
@@ -139,7 +141,8 @@ class OnlyXLeftInStockResolverTest extends TestCase
             ->with($sku, $stockId)
             ->willReturn($salableQty);
 
-        $result = $this->resolver->resolve($this->fieldMock, null, $this->resolveInfoMock, ['model' => $this->productMock]);
+        $result = $this->resolver
+            ->resolve($this->fieldMock, null, $this->resolveInfoMock, ['model' => $this->productMock]);
         $this->assertNull($result);
     }
 
@@ -163,7 +166,8 @@ class OnlyXLeftInStockResolverTest extends TestCase
             ->with($sku, $stockId)
             ->willReturn(1.0);
 
-        $result = $this->resolver->resolve($this->fieldMock, null, $this->resolveInfoMock, ['model' => $this->productMock]);
+        $result = $this->resolver
+            ->resolve($this->fieldMock, null, $this->resolveInfoMock, ['model' => $this->productMock]);
         $this->assertNull($result);
     }
 
@@ -218,7 +222,8 @@ class OnlyXLeftInStockResolverTest extends TestCase
             ->with($sku, $stockId)
             ->willThrowException(new LocalizedException(new Phrase('error')));
 
-        $result = $this->resolver->resolve($this->fieldMock, null, $this->resolveInfoMock, ['model' => $this->productMock]);
+        $result = $this->resolver
+            ->resolve($this->fieldMock, null, $this->resolveInfoMock, ['model' => $this->productMock]);
         $this->assertNull($result);
     }
 
