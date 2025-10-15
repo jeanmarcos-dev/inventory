@@ -11,15 +11,9 @@ define(['jquery', 'Magento_Checkout/js/model/resource-url-manager'], function (
 
     return {
         /**
-         * Returns URL for REST API to fetch nearby pickup locations defined for given sales channel.
-         *
-         * @param {String} salesChannelCode - Code of the sales channel.
-         * @param {Object} searchCriteria
+         * Returns URL for REST API to fetch nearby pickup locations.
          */
-        getUrlForNearbyPickupLocations: function (
-            salesChannelCode,
-            searchCriteria
-        ) {
+        getUrlForNearbyPickupLocations: function () {
             var urls = {
                 default: '/inventory/in-store-pickup/pickup-locations/'
             };

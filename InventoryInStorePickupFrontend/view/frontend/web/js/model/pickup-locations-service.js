@@ -82,7 +82,7 @@ define([
          */
         getNearbyLocations: function (searchCriteria) {
             var self = this,
-                serviceUrl = resourceUrlManager.getUrlForNearbyPickupLocations(websiteCode, searchCriteria),
+                serviceUrl = resourceUrlManager.getUrlForNearbyPickupLocations(),
                 requestData = resourceUrlManager.getNearbyPickupLocationsRequestData(websiteCode, searchCriteria),
                 cacheKey = serviceUrl + JSON.stringify(requestData);
 
