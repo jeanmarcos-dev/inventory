@@ -7,33 +7,35 @@ declare(strict_types=1);
 
 namespace Magento\InventoryLogging\Plugin\Inventory\Model\SourceItem\Command;
 
+use Magento\Framework\Event\ManagerInterface;
 use Magento\Inventory\Model\SourceItem\Command\SourceItemsDelete;
-use Magento\Logging\Model\Processor;
 
 class SourceItemsDeletePlugin
 {
     /**
-     * @param Processor $processor
+     * @param ManagerInterface $eventManager
      */
-    public function __construct(
-        private readonly Processor $processor
-    ) {
+    public function __construct(private readonly ManagerInterface $eventManager)
+    {
     }
 
     /**
+     * After plugin for SourceItemsDelete::execute, triggers action logging
+     *
      * @param SourceItemsDelete $subject
-     * @param $result
+     * @param mixed $result
      * @param array $sourceItems
      * @return void
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function afterExecute(SourceItemsDelete $subject, $result, array $sourceItems): void {
+    public function afterExecute(SourceItemsDelete $subject, $result, array $sourceItems): void
+    {
         if (empty($sourceItems)) {
             return;
         }
 
         foreach ($sourceItems as $sourceItem) {
-            $this->processor->modelActionAfter($sourceItem, 'delete');
+            $this->eventManager->dispatch('model_delete_after', ['object' => $sourceItem]);
         }
     }
 }

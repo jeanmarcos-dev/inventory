@@ -8,21 +8,22 @@ declare(strict_types=1);
 namespace Magento\InventoryLogging\Plugin\Inventory\Model\SourceItem\Command\Handler;
 
 use Magento\Inventory\Model\SourceItem\Command\Handler\SourceItemsSaveHandler;
-use Magento\Logging\Model\Processor;
+use Magento\Framework\Event\ManagerInterface;
 
 class SourceItemsSaveHandlerPlugin
 {
     /**
-     * @param Processor $processor
+     * @param ManagerInterface $eventManager
      */
-    public function __construct(
-        private readonly Processor $processor
-    ) {
+    public function __construct(private readonly ManagerInterface $eventManager)
+    {
     }
 
     /**
+     * After plugin for SourceItemsSaveHandler::execute, triggers action logging
+     *
      * @param SourceItemsSaveHandler $subject
-     * @param $result
+     * @param mixed $result
      * @param array $sourceItems
      * @return mixed
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
@@ -37,7 +38,7 @@ class SourceItemsSaveHandlerPlugin
         }
 
         foreach ($sourceItems as $sourceItem) {
-            $this->processor->modelActionAfter($sourceItem, 'save');
+            $this->eventManager->dispatch('model_save_after', ['object' => $sourceItem]);
         }
 
         return $result;
