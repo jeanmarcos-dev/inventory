@@ -117,9 +117,16 @@ class SaveLoggingTest extends AbstractBackendController
      */
     private function getLatestLoggingInfo(): string
     {
-        $conn  = $this->resource->getConnection();
-        $sql   = "SELECT `info` FROM magento_logging_event ORDER BY log_id DESC LIMIT 1";
-        $val   = $conn->fetchOne($sql);
-        return is_string($val) ? $val : '';
+        $connection = $this->resource->getConnection();
+        $tableName = $this->resource->getTable('magento_logging_event');
+
+        $select = $connection->select()
+            ->from($tableName, ['info'])
+            ->order('log_id DESC')
+            ->limit(1);
+
+        $result = $connection->fetchOne($select);
+
+        return is_string($result) ? $result : '';
     }
 }
