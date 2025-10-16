@@ -9,6 +9,7 @@ namespace Magento\InventoryLogging\Test\Integration;
 
 use Magento\Catalog\Model\Product\Type;
 use Magento\Framework\App\Request\Http as HttpRequest;
+use Magento\Framework\DB\Adapter\TableNotFoundException;
 use Magento\Framework\Module\Manager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
@@ -117,6 +118,7 @@ class SaveLoggingTest extends AbstractBackendController
      */
     private function getLatestLoggingInfo(): string
     {
+        $result = '';
         $connection = $this->resource->getConnection();
         $tableName = $this->resource->getTable('magento_logging_event');
 
@@ -124,8 +126,11 @@ class SaveLoggingTest extends AbstractBackendController
             ->from($tableName, ['info'])
             ->order('log_id DESC')
             ->limit(1);
-
-        $result = $connection->fetchOne($select);
+        try {
+            $result = $connection->fetchOne($select);
+        } catch (TableNotFoundException) {
+            self::markTestSkipped('Magento_Logging module not available');
+        }
 
         return is_string($result) ? $result : '';
     }
