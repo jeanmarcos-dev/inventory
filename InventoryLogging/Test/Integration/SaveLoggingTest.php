@@ -9,6 +9,7 @@ namespace Magento\InventoryLogging\Test\Integration;
 
 use Magento\Catalog\Model\Product\Type;
 use Magento\Framework\App\Request\Http as HttpRequest;
+use Magento\Framework\Module\Manager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\TestFramework\TestCase\AbstractBackendController;
@@ -41,6 +42,12 @@ class SaveLoggingTest extends AbstractBackendController
      */
     public function testLoggingHasSourceItemIdWhenQtyIsChangedThroughProductSave(): void
     {
+        /** @var Manager $moduleManager */
+        $moduleManager = $this->objectManager->get(Manager::class);
+        if (!$moduleManager->isEnabled('Magento_InventoryLogging')) {
+            self::markTestSkipped('Magento_InventoryLogging module disabled.');
+        }
+
         /** @var HttpRequest $request */
         $request = $this->getRequest();
         $request->setMethod('POST');
