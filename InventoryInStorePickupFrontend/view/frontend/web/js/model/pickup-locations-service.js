@@ -146,8 +146,8 @@ define([
                     addressConverter.quoteAddressToFormAddressData(address)
                 );
             }
-            if (!billingAddress || this.isBillingAddressIncomplete(billingAddress)) {
-                selectBillingAddressAction(address);
+            if (!billingAddress) {
+                quote.billingAddress(null);
                 checkoutDataResolver.resolveBillingAddress();
             }
         },
