@@ -18,6 +18,7 @@ use Magento\InventoryApi\Test\Fixture\Source as SourceFixture;
 use Magento\InventoryApi\Test\Fixture\SourceItems as SourceItemsFixture;
 use Magento\InventoryApi\Test\Fixture\Stock as StockFixture;
 use Magento\InventoryApi\Test\Fixture\StockSourceLinks as StockSourceLinksFixture;
+use Magento\InventoryBundleProductIndexer\Indexer\SelectBuilder;
 use Magento\InventoryIndexer\Indexer\SourceItem\SkuListInStockFactory;
 use Magento\InventoryIndexer\Indexer\Stock\SkuListsProcessor;
 use Magento\InventoryIndexer\Model\ResourceModel\GetStockItemData;
@@ -33,9 +34,9 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[
-    CoversClass(StockIndexer::class),
+    CoversClass(SelectBuilder::class),
 ]
-class StockIndexerTest extends TestCase
+class SkuListsProcessorTest extends TestCase
 {
     /**
      * @var DataFixtureStorage
