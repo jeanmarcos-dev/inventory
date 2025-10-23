@@ -16,6 +16,7 @@ use Magento\InventoryIndexer\Model\Queue\ReservationData;
 use Magento\InventoryIndexer\Model\ResourceModel\UpdateIsSalable;
 use Magento\InventoryIndexer\Model\ResourceModel\UpdateLegacyStockStatus;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\Alias;
+use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexAlias;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexNameBuilder;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexStructureInterface;
 
@@ -62,7 +63,7 @@ class IndexProcessor
         if ($this->defaultStockProvider->getId() !== $stockId) {
             $mainIndexName = $this->indexNameBuilder->setIndexId(InventoryIndexer::INDEXER_ID)
                 ->addDimension('stock_', (string) $stockId)
-                ->setAlias(Alias::ALIAS_MAIN)
+                ->setAlias(IndexAlias::MAIN->value)
                 ->build();
             if (!$this->indexStructure->isExist($mainIndexName, $this->connectionName)) {
                 $this->indexStructure->create($mainIndexName, $this->connectionName);

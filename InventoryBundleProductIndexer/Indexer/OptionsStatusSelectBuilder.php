@@ -14,6 +14,7 @@ use Magento\Framework\EntityManager\MetadataPool;
 use Magento\InventoryCatalogApi\Api\DefaultStockProviderInterface;
 use Magento\InventoryConfigurationApi\Model\InventoryConfigurationInterface;
 use Magento\InventoryIndexer\Indexer\InventoryIndexer;
+use Magento\InventoryIndexer\Indexer\Stock\ReservationsIndexTable;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexAlias;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexNameBuilder;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexNameResolverInterface;
@@ -57,13 +58,6 @@ class OptionsStatusSelectBuilder
         $indexTableName = $this->indexNameResolver->resolveName($indexName);
         $metadata = $this->metadataPool->getMetadata(ProductInterface::class);
         $productLinkField = $metadata->getLinkField();
-
-        $stockId = 0;
-        foreach ($indexName->getDimensions() as $dimension) {
-            if ($dimension->getName() === 'stock_') {
-                $stockId = (int) $dimension->getValue();
-            }
-        }
         $reservationsTableName = $this->reservationsIndexTable->getTableName($stockId);
 
         $select = $this->resourceConnection->getConnection()->select()
