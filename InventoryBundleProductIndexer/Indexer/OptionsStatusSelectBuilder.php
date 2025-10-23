@@ -13,14 +13,16 @@ use Magento\Framework\DB\Select;
 use Magento\Framework\EntityManager\MetadataPool;
 use Magento\InventoryCatalogApi\Api\DefaultStockProviderInterface;
 use Magento\InventoryConfigurationApi\Model\InventoryConfigurationInterface;
-use Magento\InventoryIndexer\Indexer\Stock\ReservationsIndexTable;
-use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexName;
+use Magento\InventoryIndexer\Indexer\InventoryIndexer;
+use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexAlias;
+use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexNameBuilder;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexNameResolverInterface;
 
 class OptionsStatusSelectBuilder
 {
     /**
      * @param ResourceConnection $resourceConnection
+     * @param IndexNameBuilder $indexNameBuilder
      * @param IndexNameResolverInterface $indexNameResolver
      * @param MetadataPool $metadataPool
      * @param DefaultStockProviderInterface $defaultStockProvider
@@ -29,6 +31,7 @@ class OptionsStatusSelectBuilder
      */
     public function __construct(
         private readonly ResourceConnection $resourceConnection,
+        private readonly IndexNameBuilder $indexNameBuilder,
         private readonly IndexNameResolverInterface $indexNameResolver,
         private readonly MetadataPool $metadataPool,
         private readonly DefaultStockProviderInterface $defaultStockProvider,
@@ -40,12 +43,17 @@ class OptionsStatusSelectBuilder
     /**
      * Build bundle options stock status select
      *
-     * @param IndexName $indexName
-     * @param array $skuList
+     * @param int $stockId
+     * @param string[] $skuList
+     * @param IndexAlias $indexAlias
      * @return Select
      */
-    public function execute(IndexName $indexName, array $skuList = []): Select
+    public function execute(int $stockId, array $skuList = [], IndexAlias $indexAlias = IndexAlias::MAIN): Select
     {
+        $indexName = $this->indexNameBuilder->setIndexId(InventoryIndexer::INDEXER_ID)
+            ->addDimension('stock_', (string) $stockId)
+            ->setAlias($indexAlias->value)
+            ->build();
         $indexTableName = $this->indexNameResolver->resolveName($indexName);
         $metadata = $this->metadataPool->getMetadata(ProductInterface::class);
         $productLinkField = $metadata->getLinkField();

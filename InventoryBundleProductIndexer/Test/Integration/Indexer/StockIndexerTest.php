@@ -18,7 +18,8 @@ use Magento\InventoryApi\Test\Fixture\Source as SourceFixture;
 use Magento\InventoryApi\Test\Fixture\SourceItems as SourceItemsFixture;
 use Magento\InventoryApi\Test\Fixture\Stock as StockFixture;
 use Magento\InventoryApi\Test\Fixture\StockSourceLinks as StockSourceLinksFixture;
-use Magento\InventoryBundleProductIndexer\Indexer\StockIndexer;
+use Magento\InventoryIndexer\Indexer\SourceItem\SkuListInStockFactory;
+use Magento\InventoryIndexer\Indexer\Stock\SkuListsProcessor;
 use Magento\InventoryIndexer\Model\ResourceModel\GetStockItemData;
 use Magento\InventoryReservations\Test\Fixture\Reservation as ReservationFixture;
 use Magento\InventorySalesApi\Model\GetStockItemDataInterface;
@@ -42,9 +43,14 @@ class StockIndexerTest extends TestCase
     private $fixtures;
 
     /**
-     * @var StockIndexer
+     * @var SkuListsProcessor
      */
-    private $stockIndexer;
+    private $skuListsProcessor;
+
+    /**
+     * @var SkuListInStockFactory
+     */
+    private $skuListInStockFactory;
 
     /**
      * @var GetSourceItemsBySkuInterface
@@ -64,7 +70,8 @@ class StockIndexerTest extends TestCase
     protected function setUp(): void
     {
         $this->fixtures = DataFixtureStorageManager::getStorage();
-        $this->stockIndexer = Bootstrap::getObjectManager()->create(StockIndexer::class);
+        $this->skuListsProcessor = Bootstrap::getObjectManager()->create(SkuListsProcessor::class);
+        $this->skuListInStockFactory = Bootstrap::getObjectManager()->get(SkuListInStockFactory::class);
         $this->getSourceItemsBySku = Bootstrap::getObjectManager()->get(GetSourceItemsBySkuInterface::class);
         $this->sourceItemsSave = Bootstrap::getObjectManager()->get(SourceItemsSaveInterface::class);
         $this->getStockItemData = Bootstrap::getObjectManager()->get(GetStockItemData::class);
@@ -172,7 +179,11 @@ class StockIndexerTest extends TestCase
             $this->sourceItemsSave->execute($sourceItems);
         }
 
-        $this->stockIndexer->executeList([$stock->getStockId()], ['bundle1']);
+        $skuListInStock = $this->skuListInStockFactory->create(
+            ['stockId' => $stock->getStockId(), 'skuList' => ['bundle1']]
+        );
+        $this->skuListsProcessor->reindexList([$skuListInStock]);
+
         $bundleStockItem = $this->getStockItemData->execute('bundle1', $stock->getStockId());
         self::assertEquals($expectedStockStatus, (bool) $bundleStockItem[GetStockItemDataInterface::IS_SALABLE]);
     }
