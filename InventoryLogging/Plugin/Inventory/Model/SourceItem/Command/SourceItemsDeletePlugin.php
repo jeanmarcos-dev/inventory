@@ -37,13 +37,11 @@ class SourceItemsDeletePlugin
 
         foreach ($sourceItems as $sourceItem) {
             if (!$sourceItem instanceof AbstractModel) {
-                throw new \InvalidArgumentException(
-                    sprintf(
-                        'Expected instance of %s, got %s',
-                        AbstractModel::class,
-                        is_object($sourceItem) ? get_class($sourceItem) : gettype($sourceItem)
-                    )
-                );
+                throw new \InvalidArgumentException(sprintf(
+                    'Expected instance of %s, got %s',
+                    \Magento\Framework\Model\AbstractModel::class,
+                    get_debug_type($sourceItem)
+                ));
             }
             $this->eventManager->dispatch('model_delete_after', ['object' => $sourceItem]);
         }
