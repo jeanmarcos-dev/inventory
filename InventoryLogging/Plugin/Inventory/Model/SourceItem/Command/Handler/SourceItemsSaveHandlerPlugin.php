@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Magento\InventoryLogging\Plugin\Inventory\Model\SourceItem\Command\Handler;
 
+use Magento\Framework\Model\AbstractModel;
 use Magento\Inventory\Model\SourceItem\Command\Handler\SourceItemsSaveHandler;
 use Magento\Framework\Event\ManagerInterface;
 
@@ -38,6 +39,15 @@ class SourceItemsSaveHandlerPlugin
         }
 
         foreach ($sourceItems as $sourceItem) {
+            if (!$sourceItem instanceof AbstractModel) {
+                throw new \InvalidArgumentException(
+                    sprintf(
+                        'Expected instance of %s, got %s',
+                        AbstractModel::class,
+                        is_object($sourceItem) ? get_class($sourceItem) : gettype($sourceItem)
+                    )
+                );
+            }
             $this->eventManager->dispatch('model_save_after', ['object' => $sourceItem]);
         }
 

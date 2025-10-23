@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Magento\InventoryLogging\Plugin\Inventory\Model\SourceItem\Command;
 
 use Magento\Framework\Event\ManagerInterface;
+use Magento\Framework\Model\AbstractModel;
 use Magento\Inventory\Model\SourceItem\Command\SourceItemsDelete;
 
 class SourceItemsDeletePlugin
@@ -35,6 +36,15 @@ class SourceItemsDeletePlugin
         }
 
         foreach ($sourceItems as $sourceItem) {
+            if (!$sourceItem instanceof AbstractModel) {
+                throw new \InvalidArgumentException(
+                    sprintf(
+                        'Expected instance of %s, got %s',
+                        AbstractModel::class,
+                        is_object($sourceItem) ? get_class($sourceItem) : gettype($sourceItem)
+                    )
+                );
+            }
             $this->eventManager->dispatch('model_delete_after', ['object' => $sourceItem]);
         }
     }
