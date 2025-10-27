@@ -40,11 +40,7 @@ class SourceItemsSaveHandlerPlugin
 
         foreach ($sourceItems as $sourceItem) {
             if (!$sourceItem instanceof AbstractModel) {
-                throw new \InvalidArgumentException(sprintf(
-                    'Expected instance of %s, got %s',
-                    \Magento\Framework\Model\AbstractModel::class,
-                    get_debug_type($sourceItem)
-                ));
+                continue;
             }
             $this->eventManager->dispatch('model_save_after', ['object' => $sourceItem]);
         }

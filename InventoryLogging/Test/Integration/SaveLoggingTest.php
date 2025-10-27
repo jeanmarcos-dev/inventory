@@ -45,8 +45,8 @@ class SaveLoggingTest extends AbstractBackendController
     {
         /** @var Manager $moduleManager */
         $moduleManager = $this->objectManager->get(Manager::class);
-        if (!$moduleManager->isEnabled('Magento_InventoryLogging')) {
-            self::markTestSkipped('Magento_InventoryLogging module disabled.');
+        if (!$moduleManager->isEnabled('Magento_Logging')) {
+            self::markTestSkipped('Magento_Logging module disabled.');
         }
 
         /** @var HttpRequest $request */
@@ -118,7 +118,6 @@ class SaveLoggingTest extends AbstractBackendController
      */
     private function getLatestLoggingInfo(): string
     {
-        $result = '';
         $connection = $this->resource->getConnection();
         $tableName = $this->resource->getTable('magento_logging_event');
 
@@ -126,11 +125,7 @@ class SaveLoggingTest extends AbstractBackendController
             ->from($tableName, ['info'])
             ->order('log_id DESC')
             ->limit(1);
-        try {
-            $result = $connection->fetchOne($select);
-        } catch (TableNotFoundException) {
-            self::markTestSkipped('Magento_Logging module not available');
-        }
+        $result = $connection->fetchOne($select);
 
         return is_string($result) ? $result : '';
     }
