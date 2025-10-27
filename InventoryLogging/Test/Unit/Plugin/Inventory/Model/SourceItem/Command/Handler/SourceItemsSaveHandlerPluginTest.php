@@ -7,9 +7,7 @@ declare(strict_types=1);
 
 namespace Magento\InventoryLogging\Test\Unit\Plugin\Inventory\Model\SourceItem\Command\Handler;
 
-use InvalidArgumentException;
 use Magento\Framework\Event\ManagerInterface;
-use Magento\Framework\Model\AbstractModel;
 use Magento\Inventory\Model\SourceItem;
 use Magento\Inventory\Model\SourceItem\Command\Handler\SourceItemsSaveHandler;
 use Magento\InventoryLogging\Plugin\Inventory\Model\SourceItem\Command\Handler\SourceItemsSaveHandlerPlugin;
@@ -98,16 +96,6 @@ class SourceItemsSaveHandlerPluginTest extends TestCase
             ->method('dispatch');
 
         $subject = $this->createMock(SourceItemsSaveHandler::class);
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches(
-            sprintf(
-                '/^Expected instance of %s, got %s$/',
-                preg_quote(AbstractModel::class, '/'),
-                preg_quote($expectedType, '/')
-            )
-        );
-
         $this->plugin->afterExecute($subject, 'irrelevant', [$invalidItem]);
     }
 

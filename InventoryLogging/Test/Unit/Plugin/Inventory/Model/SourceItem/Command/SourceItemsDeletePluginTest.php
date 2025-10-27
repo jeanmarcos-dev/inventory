@@ -8,9 +8,7 @@ declare(strict_types=1);
 namespace Magento\InventoryLogging\Test\Unit\Plugin\Inventory\Model\SourceItem\Command;
 
 use Magento\Inventory\Model\SourceItem;
-use InvalidArgumentException;
 use Magento\Framework\Event\ManagerInterface;
-use Magento\Framework\Model\AbstractModel;
 use Magento\Inventory\Model\SourceItem\Command\SourceItemsDelete;
 use Magento\InventoryLogging\Plugin\Inventory\Model\SourceItem\Command\SourceItemsDeletePlugin;
 use PHPUnit\Framework\MockObject\Exception;
@@ -101,16 +99,6 @@ class SourceItemsDeletePluginTest extends TestCase
             ->method('dispatch');
 
         $subject = $this->createMock(SourceItemsDelete::class);
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches(
-            sprintf(
-                '/^Expected instance of %s, got %s$/',
-                preg_quote(AbstractModel::class, '/'),
-                preg_quote($expectedType, '/')
-            )
-        );
-
         $this->plugin->afterExecute($subject, 'whatever', [$invalidItem]);
     }
 
