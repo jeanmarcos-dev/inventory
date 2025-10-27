@@ -89,7 +89,8 @@ class SourceItemsDeletePluginTest extends TestCase
      * @throws Exception
      * @dataProvider invalidItemProvider
      */
-    public function testAfterExecuteThrowsIfSourceItemIsNotAbstractModel(mixed $invalidItem): void {
+    public function testAfterExecuteThrowsIfSourceItemIsNotAbstractModel(mixed $invalidItem): void
+    {
         $this->eventManager
             ->expects(self::never())
             ->method('dispatch');
