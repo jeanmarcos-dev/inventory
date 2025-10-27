@@ -85,15 +85,11 @@ class SourceItemsDeletePluginTest extends TestCase
 
     /**
      * @param mixed $invalidItem
-     * @param string $expectedType
      * @return void
      * @throws Exception
      * @dataProvider invalidItemProvider
      */
-    public function testAfterExecuteThrowsIfSourceItemIsNotAbstractModel(
-        mixed $invalidItem,
-        string $expectedType
-    ): void {
+    public function testAfterExecuteThrowsIfSourceItemIsNotAbstractModel(mixed $invalidItem): void {
         $this->eventManager
             ->expects(self::never())
             ->method('dispatch');
@@ -108,13 +104,13 @@ class SourceItemsDeletePluginTest extends TestCase
     public static function invalidItemProvider(): array
     {
         return [
-            'null'     => [null, 'null'],
-            'int'      => [123, 'int'],
-            'string'   => ['sku-1', 'string'],
-            'array'    => [[], 'array'],
-            'stdClass' => [new \stdClass(), \stdClass::class],
-            'bool'     => [true, 'bool'],
-            'float'    => [1.23, 'float'],
+            'null'     => [null],
+            'int'      => [123],
+            'string'   => ['sku-1'],
+            'array'    => [[]],
+            'stdClass' => [new \stdClass()],
+            'bool'     => [true],
+            'float'    => [1.23],
         ];
     }
 }
