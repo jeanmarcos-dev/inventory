@@ -11,5 +11,6 @@
     <entity name="MainWebsiteSalesChannel" type="sales_channel">
         <data key="type">website</data>
         <data key="code">base</data>
+        <data key="status">Refunded</data>
     </entity>
 </entities>
