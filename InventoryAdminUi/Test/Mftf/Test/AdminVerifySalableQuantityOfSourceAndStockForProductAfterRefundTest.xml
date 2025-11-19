@@ -217,7 +217,7 @@
         <actionGroup ref="AdminAssertRefundInRefundsGridActionGroup" stepKey="assertRefund">
             <argument name="orderId" value="{$grabOrderNumber}"/>
             <argument name="memoId" value="{$grabMemoId}"/>
-            <argument name="refundStatus" value="{{MainWebsiteSalesChannel.status}}"/>
+            <argument name="refundStatus" value="{{OrderState.refund}}"/>
             <argument name="refundedTotal" value="$30.00"/>
         </actionGroup>
         <!--  Step 14: Verify that items of Simple products on Test stock returned correctly after making refund -->
