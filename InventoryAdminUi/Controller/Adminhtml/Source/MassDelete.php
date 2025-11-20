@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025
+ * Copyright 2025 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Magento\InventoryAdminUi\Controller\Adminhtml\Source;
 
 use Exception;
-use Magento\Backend\App\Action;
+use Magento\Backend\App\AbstractAction;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -22,9 +22,13 @@ use Magento\InventoryApi\Api\GetStockSourceLinksInterface;
 use Magento\InventoryApi\Api\SourceItemRepositoryInterface;
 use Magento\InventoryApi\Api\Data\SourceItemInterface;
 use Magento\InventoryApi\Api\Data\StockSourceLinkInterface;
+use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Ui\Component\MassAction\Filter;
 
-class MassDelete extends Action implements HttpPostActionInterface
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
+class MassDelete extends AbstractAction implements HttpPostActionInterface, HttpGetActionInterface
 {
     /**
      * @see _isAllowed()
@@ -119,8 +123,12 @@ class MassDelete extends Action implements HttpPostActionInterface
     }
 
     /**
+     * Mass delete sources
+     *
      * @param Collection $sourceCollection
      * @return void
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     private function deleteSources(Collection $sourceCollection): void
     {
