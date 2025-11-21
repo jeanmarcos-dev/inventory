@@ -10,6 +10,7 @@ namespace Magento\InventoryAdminUi\Controller\Adminhtml\Source;
 use Exception;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;
+use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\CouldNotDeleteException;
@@ -21,14 +22,21 @@ use Magento\InventoryApi\Api\GetStockSourceLinksInterface;
 use Magento\InventoryApi\Api\SourceItemRepositoryInterface;
 use Magento\InventoryApi\Api\Data\SourceItemInterface;
 use Magento\InventoryApi\Api\Data\StockSourceLinkInterface;
-use Magento\Framework\App\Action\HttpGetActionInterface;
+use Magento\Backend\App\AbstractAction;
 use Magento\Ui\Component\MassAction\Filter;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class MassDelete extends MassAction implements HttpPostActionInterface, HttpGetActionInterface
+class MassDelete extends AbstractAction implements HttpPostActionInterface, HttpGetActionInterface
 {
+    /**
+     * Authorization level of a basic admin session
+     *
+     * @see _isAllowed()
+     */
+    public const ADMIN_RESOURCE = 'Magento_InventoryApi::source_edit';
+
     /**
      * @var Filter
      */
@@ -84,7 +92,6 @@ class MassDelete extends MassAction implements HttpPostActionInterface, HttpGetA
         SearchCriteriaBuilder $searchCriteriaBuilder,
         SourceResource $sourceResource
     ) {
-        parent::__construct($context);
         $this->massActionFilter = $massActionFilter;
         $this->sourceCollectionFactory = $sourceCollectionFactory;
         $this->defaultSourceProvider = $defaultSourceProvider;
@@ -92,6 +99,7 @@ class MassDelete extends MassAction implements HttpPostActionInterface, HttpGetA
         $this->sourceItemRepository = $sourceItemRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->sourceResource = $sourceResource;
+        parent::__construct($context);
     }
 
     /**
