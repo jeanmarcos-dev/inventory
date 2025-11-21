@@ -22,6 +22,9 @@ use Magento\Inventory\Model\Source as SourceModel;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class MassDeleteTest extends TestCase
 {
     /** @var DefaultSourceProviderInterface|MockObject */

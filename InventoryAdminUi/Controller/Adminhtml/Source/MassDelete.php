@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Magento\InventoryAdminUi\Controller\Adminhtml\Source;
 
 use Exception;
-use Magento\Backend\App\AbstractAction;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -28,13 +27,8 @@ use Magento\Ui\Component\MassAction\Filter;
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class MassDelete extends AbstractAction implements HttpPostActionInterface, HttpGetActionInterface
+class MassDelete extends MassAction implements HttpPostActionInterface, HttpGetActionInterface
 {
-    /**
-     * @see _isAllowed()
-     */
-    public const ADMIN_RESOURCE = 'Magento_InventoryApi::source_edit';
-
     /**
      * @var Filter
      */
