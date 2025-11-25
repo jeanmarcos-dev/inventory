@@ -13,70 +13,52 @@ use Magento\Framework\DB\Select;
 use Magento\Framework\EntityManager\MetadataPool;
 use Magento\InventoryCatalogApi\Api\DefaultStockProviderInterface;
 use Magento\InventoryConfigurationApi\Model\InventoryConfigurationInterface;
-use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexName;
+use Magento\InventoryIndexer\Indexer\InventoryIndexer;
+use Magento\InventoryIndexer\Indexer\Stock\ReservationsIndexTable;
+use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexAlias;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexNameBuilder;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexNameResolverInterface;
 
 class OptionsStatusSelectBuilder
 {
     /**
-     * @var ResourceConnection
-     */
-    private $resourceConnection;
-
-    /**
-     * @var IndexNameResolverInterface
-     */
-    private $indexNameResolver;
-
-    /**
-     * @var MetadataPool
-     */
-    private $metadataPool;
-
-    /**
-     * @var DefaultStockProviderInterface
-     */
-    private $defaultStockProvider;
-
-    /**
-     * @var InventoryConfigurationInterface
-     */
-    private $inventoryConfiguration;
-
-    /**
      * @param ResourceConnection $resourceConnection
+     * @param IndexNameBuilder $indexNameBuilder
      * @param IndexNameResolverInterface $indexNameResolver
      * @param MetadataPool $metadataPool
      * @param DefaultStockProviderInterface $defaultStockProvider
      * @param InventoryConfigurationInterface $inventoryConfiguration
+     * @param ReservationsIndexTable $reservationsIndexTable
      */
     public function __construct(
-        ResourceConnection $resourceConnection,
-        IndexNameResolverInterface $indexNameResolver,
-        MetadataPool $metadataPool,
-        DefaultStockProviderInterface $defaultStockProvider,
-        InventoryConfigurationInterface $inventoryConfiguration
+        private readonly ResourceConnection $resourceConnection,
+        private readonly IndexNameBuilder $indexNameBuilder,
+        private readonly IndexNameResolverInterface $indexNameResolver,
+        private readonly MetadataPool $metadataPool,
+        private readonly DefaultStockProviderInterface $defaultStockProvider,
+        private readonly InventoryConfigurationInterface $inventoryConfiguration,
+        private readonly ReservationsIndexTable $reservationsIndexTable,
     ) {
-        $this->resourceConnection = $resourceConnection;
-        $this->indexNameResolver = $indexNameResolver;
-        $this->metadataPool = $metadataPool;
-        $this->defaultStockProvider = $defaultStockProvider;
-        $this->inventoryConfiguration = $inventoryConfiguration;
     }
 
     /**
      * Build bundle options stock status select
      *
-     * @param IndexName $indexName
-     * @param array $skuList
+     * @param int $stockId
+     * @param string[] $skuList
+     * @param IndexAlias $indexAlias
      * @return Select
      */
-    public function execute(IndexName $indexName, array $skuList = []): Select
+    public function execute(int $stockId, array $skuList = [], IndexAlias $indexAlias = IndexAlias::MAIN): Select
     {
+        $indexName = $this->indexNameBuilder->setIndexId(InventoryIndexer::INDEXER_ID)
+            ->addDimension('stock_', (string) $stockId)
+            ->setAlias($indexAlias->value)
+            ->build();
         $indexTableName = $this->indexNameResolver->resolveName($indexName);
         $metadata = $this->metadataPool->getMetadata(ProductInterface::class);
         $productLinkField = $metadata->getLinkField();
+        $reservationsTableName = $this->reservationsIndexTable->getTableName($stockId);
 
         $select = $this->resourceConnection->getConnection()->select()
             ->from(
@@ -102,6 +84,10 @@ class OptionsStatusSelectBuilder
             )->joinInner(
                 ['parent_product_entity' => $this->resourceConnection->getTableName('catalog_product_entity')],
                 'parent_product_entity.' . $productLinkField . ' = bundle_option.parent_id',
+                []
+            )->joinLeft(
+                ['reservations' => $this->resourceConnection->getTableName($reservationsTableName)],
+                'reservations.sku = stock.sku',
                 []
             )->group(
                 ['bundle_option.parent_id', 'bundle_option.option_id']
@@ -130,11 +116,15 @@ class OptionsStatusSelectBuilder
     private function getOptionsStatusExpression(): \Zend_Db_Expr
     {
         $connection = $this->resourceConnection->getConnection();
+
+        $reservationQty = $connection->getIfNullSql('reservations.reservation_qty');
+        $quantity = '(stock.quantity - stock_item.min_qty + ' . $reservationQty . ')';
         $isAvailableExpr = $connection->getCheckSql(
-            'bundle_selection.selection_can_change_qty = 0 AND bundle_selection.selection_qty > stock.quantity',
+            'bundle_selection.selection_can_change_qty = 0 AND bundle_selection.selection_qty > ' . $quantity,
             '0',
             'stock.is_salable'
         );
+
         if ($this->inventoryConfiguration->getBackorders()) {
             $backordersExpr = $connection->getCheckSql(
                 'stock_item.use_config_backorders = 0 AND stock_item.backorders = 0',
@@ -148,6 +138,7 @@ class OptionsStatusSelectBuilder
                 $isAvailableExpr
             );
         }
+
         if ($this->inventoryConfiguration->getManageStock()) {
             $statusExpr = $connection->getCheckSql(
                 'stock_item.use_config_manage_stock = 0 AND stock_item.manage_stock = 0',
