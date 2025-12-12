@@ -8,7 +8,7 @@
 
 <tests xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/testSchema.xsd">
-    <test name="AdminAssignSourceToStockOrderInvoiceShipmentCreditmemoReturnToStockTest">
+    <test name="AdminMSICreditMemoReturnToStockTest">
         <annotations>
             <stories value="MSI Source Creation and Return Flow"/>
             <title value="Credit memo for order with 2 Simple products on Test stock after full invoice and shipment created in Admin"/>
@@ -19,7 +19,11 @@
             <group value="WYSIWYGDisabled"/>
         </annotations>
         <before>
-            <actionGroup ref="AdminLoginActionGroup" stepKey="loginAsAdmin1"/>
+            <!--  Precondition Step 1: Login to Admin Panel -->
+            <actionGroup ref="AdminLoginActionGroup" stepKey="loginAsAdmin"/>
+            <!--  Precondition Step 2: Create New Source -->
+            <createData entity="FullSource1" stepKey="createSource1"/>
+            <createData entity="FullSource2" stepKey="createSource2"/>
         </before>
         <after>
             <actionGroup ref="DisableAllSourcesActionGroup" stepKey="disableAllSources"/>
@@ -33,65 +37,40 @@
             <!--Delete test data.-->
             <deleteData createDataKey="createCustomer" stepKey="deleteCustomer"/>
             <deleteData createDataKey="createStock" stepKey="deleteCustomStock"/>
-            <actionGroup ref="AdminDeleteCategoryByNameActionGroup" stepKey="deleteCategory">
-                <argument name="categoryName" value="{{SimpleSubCategory.name}}"/>
-            </actionGroup>
+            <deleteData createDataKey="createSubCategory" stepKey="deleteCategory"/>
             <deleteData createDataKey="createMSISimpleProduct1" stepKey="deleteProduct"/>
             <deleteData createDataKey="createMSISimpleProduct2" stepKey="deleteProduct2"/>
             <!--Admin Logout-->
             <actionGroup ref="AdminLogoutActionGroup" stepKey="logoutOfAdmin"/>
         </after>
         <!--  Step 1: Create New Category -->
-        <actionGroup ref="AdminOpenCategoryPageActionGroup" stepKey="goToCategoryPage"/>
-        <actionGroup ref="CreateCategoryActionGroup" stepKey="createSubcategory">
-            <argument name="categoryEntity" value="SimpleSubCategory"/>
-        </actionGroup>
-        <actionGroup ref="AdminExpandCategoryTreeActionGroup" stepKey="expandCategoryTree"/>
-        <actionGroup ref="AssertAdminCategoryIsListedInCategoriesTreeActionGroup" stepKey="seeRootCategory">
-            <argument name="categoryName" value="{{SimpleSubCategory.name}}"/>
-        </actionGroup>
-        <!--  Step 2: Create New Source -->
-        <createData entity="FullSource1" stepKey="createSource1"/>
-        <createData entity="FullSource2" stepKey="createSource2"/>
+        <createData entity="SimpleSubCategory" stepKey="createSubCategory"/>
         <!--  Step 3: New Stock created with New Source assigned and with Main Website assigned as Sales Channel  -->
-        <createData entity="BasicMsiStock1" stepKey="createStock"/>
-        <actionGroup ref="AssignWebsiteToStockActionGroup" stepKey="assignMainWebsiteToCustomStock">
-            <argument name="stockName" value="$$createStock.stock[name]$$"/>
-            <argument name="websiteName" value="{{_defaultWebsite.name}}"/>
-        </actionGroup>
-        <waitForPageLoad stepKey="waitForGridReload"/>
-        <actionGroup ref="AdminEditStockActionGroup" stepKey="adminEditCreatedStock">
-            <argument name="stockName" value="$$createStock.stock[name]$$"/>
-        </actionGroup>
+        <createData entity="BasicMsiStockWithMainWebsite1" stepKey="createStock"/>
         <!--  Step 4 & 5: Select "Test Source 1" in sources list and Click button "Done" -->
-        <actionGroup ref="AdminAssignSourceToStockActionGroup" stepKey="assignSource1ToStock1">
-            <argument name="sourceName" value="$$createSource1.source[name]$$"/>
-        </actionGroup>
-        <waitForPageLoad stepKey="waitForTheSourcesAssigned"/>
-        <!--  Step 6: Click button "Save & close" -->
-        <actionGroup ref="AdminFormSaveAndCloseActionGroup" stepKey="clickSaveAndCloseButton"/>
+        <createData entity="SourceStockLinked1" stepKey="linkSourceToStock">
+            <requiredEntity createDataKey="createStock"/>
+            <requiredEntity createDataKey="createSource1"/>
+        </createData>
         <!-- Step 7: Run full reindex and flush cache -->
         <actionGroup ref="CliIndexerReindexActionGroup" stepKey="performReindex">
             <argument name="indices" value=""/>
         </actionGroup>
         <!--  Step 8: 2 Simple Products with additional Source assigned created -->
         <createData entity="ApiSimpleProduct" stepKey="createMSISimpleProduct1">
+            <requiredEntity createDataKey="createSubCategory"/>
             <field key="price">10</field>
         </createData>
         <createData entity="ApiSimpleProduct" stepKey="createMSISimpleProduct2">
+            <requiredEntity createDataKey="createSubCategory"/>
             <field key="price">10</field>
         </createData>
         <actionGroup ref="AdminProductPageOpenByIdActionGroup" stepKey="openSimpleProductForEdit">
             <argument name="productId" value="$createMSISimpleProduct1.id$"/>
         </actionGroup>
-        <actionGroup ref="AdminAssignCategoryToProductAndSaveActionGroup" stepKey="assignProduct">
-            <argument name="categoryName" value="{{SimpleSubCategory.name}}"/>
-        </actionGroup>
-        <actionGroup ref="AssignSourceToProductActionGroup" stepKey="assignTestSourceToCreatedProduct">
+        <actionGroup ref="AdminAssignSourceToProductAndSetSourceQuantityActionGroup" stepKey="assignTestSourceToCreatedProduct">
             <argument name="sourceCode" value="$$createSource1.source[source_code]$$"/>
         </actionGroup>
-        <waitForElementVisible selector="{{AdminProductSourcesGrid.rowQty('1')}}" stepKey="seeProductQuantity"/>
-        <fillField selector="{{AdminProductSourcesGrid.rowQty('1')}}" userInput="100" stepKey="setProductQuantity"/>
         <actionGroup ref="AdminOpenContentSectionOnProductPageActionGroup" stepKey="openContentTab"/>
         <waitForElementVisible selector="{{AdminProductContentSection.descriptionTextArea}}" stepKey="clickOnSaveAndContinue1"/>
         <actionGroup ref="AdminFillInProductDescriptionActionGroup" stepKey="editDescription">
@@ -101,11 +80,10 @@
         <actionGroup ref="AdminProductPageOpenByIdActionGroup" stepKey="openProductForEdit">
             <argument name="productId" value="$createMSISimpleProduct2.id$"/>
         </actionGroup>
-        <actionGroup ref="AssignSourceToProductActionGroup" stepKey="assignTestSourceToCreatedSimpleProduct">
+        <actionGroup ref="AdminAssignSourceToProductAndSetSourceQuantityActionGroup" stepKey="assignTestSourceToCreatedProduct2">
             <argument name="sourceCode" value="$$createSource1.source[source_code]$$"/>
         </actionGroup>
-        <waitForElementVisible selector="{{AdminProductSourcesGrid.rowQty('1')}}" stepKey="seeProductQty"/>
-        <fillField selector="{{AdminProductSourcesGrid.rowQty('1')}}" userInput="100" stepKey="setProductQty"/>
+
         <actionGroup ref="AdminOpenContentSectionOnProductPageActionGroup" stepKey="openContent"/>
         <actionGroup ref="AdminFillInProductDescriptionActionGroup" stepKey="editLongDescription">
             <argument name="description" value="{{ApiProductDescription.value}}"/>
@@ -156,17 +134,11 @@
         <actionGroup ref="LoginToStorefrontActionGroup" stepKey="loginToStorefront">
             <argument name="Customer" value="$$createCustomer$$"/>
         </actionGroup>
-        <actionGroup ref="StorefrontGoToCategoryPageActionGroup" stepKey="openCategory">
-            <argument name="categoryName" value="{{SimpleSubCategory.name}}"/>
-        </actionGroup>
         <actionGroup ref="StorefrontOpenProductEntityPageActionGroup" stepKey="navigateToProduct1ProductDetailsPage">
             <argument name="product" value="$createMSISimpleProduct1$"/>
         </actionGroup>
         <actionGroup ref="StorefrontProductPageAddSimpleProductToCartActionGroup" stepKey="addSimpleProductToCart"/>
         <waitForPageLoad stepKey="waitForCartPageToLoad"/>
-        <actionGroup ref="StorefrontGoToCategoryPageActionGroup" stepKey="openAgainCategory">
-            <argument name="categoryName" value="{{SimpleSubCategory.name}}"/>
-        </actionGroup>
         <actionGroup ref="StorefrontOpenProductEntityPageActionGroup" stepKey="navigateToProduct2ProductDetailsPage">
             <argument name="product" value="$createMSISimpleProduct2$"/>
         </actionGroup>
@@ -178,11 +150,12 @@
         <!-- Checkout select Check/Money Order payment -->
         <actionGroup ref="CheckoutSelectCheckMoneyOrderPaymentActionGroup" stepKey="selectCheckMoneyPayment"/>
         <actionGroup ref="ClickPlaceOrderActionGroup" stepKey="clickPlaceOrder"/>
-        <waitForElementVisible selector="{{CheckoutSuccessMainSection.successTitle}}" stepKey="waitForLoadSuccessPageTitle"/>
-        <grabTextFrom selector="{{CheckoutSuccessMainSection.orderNumber22}}" stepKey="grabOrderNumber"/>
-        <!--Assert order in orders grid -->
-        <actionGroup ref="OpenOrderByIdActionGroup" stepKey="openFirstOrderPage">
-            <argument name="orderId" value="{$grabOrderNumber}"/>
+        <actionGroup ref="ClickPlaceOrderActionGroup" stepKey="placeOrder"/>
+        <actionGroup ref="StorefrontClickOrderLinkFromCheckoutSuccessPageActionGroup" stepKey="clickOrderLink"/>
+        <grabFromCurrentUrl regex="~/order_id/(\d+)/~" stepKey="orderId"/>
+        <!-- Verify order -->
+        <actionGroup ref="AdminOpenOrderByEntityIdActionGroup" stepKey="openOrder">
+            <argument name="entityId" value="{$orderId}"/>
         </actionGroup>
         <!--  Step 11: Invoice created for whole order -->
         <actionGroup ref="StartCreateInvoiceFromOrderPageActionGroup" stepKey="startCreateInvoice"/>
@@ -199,15 +172,14 @@
         <actionGroup ref="SubmitShipmentIntoOrderActionGroup" stepKey="submitShipment"/>
         <waitForText selector="{{AdminOrderDetailsInformationSection.orderStatus}}" userInput="{{OrderState.complete}}" stepKey="seeOrderComplete"/>
         <!--Create Credit Memo-->
-        <actionGroup ref="OpenOrderByIdActionGroup" stepKey="openOrderPage">
-            <argument name="orderId" value="{$grabOrderNumber}"/>
+        <actionGroup ref="AdminOpenOrderByEntityIdActionGroup" stepKey="openOrderAgain">
+            <argument name="entityId" value="{$orderId}"/>
         </actionGroup>
         <!--  Step 15: Credit Memo created with 'Return to stock' for one product only-->
         <actionGroup ref="AdminCreateCreditMemoReturnToStockActionGroup" stepKey="createCreditMemo"/>
         <actionGroup ref="SubmitCreditMemoActionGroup" stepKey="submitCreditMemo"/>
-        <waitForElementClickable selector="{{AdminOrderDetailsOrderViewSection.creditMemos}}" stepKey="waitToClickCreditMemoTab"/>
-        <click selector="{{AdminOrderDetailsOrderViewSection.creditMemos}}" stepKey="clickCreditMemoTab"/>
         <waitForPageLoad stepKey="waitForTabLoad"/>
+        <actionGroup ref="AdminGoToCreditMemoTabActionGroup" stepKey="openCreditMemoFromOrderPageActionGroup"/>
         <grabTextFrom selector="{{AdminCreditMemosGridSection.memoId}}" stepKey="grabMemoId"/>
         <assertNotEmpty stepKey="assertMemoIdIsNotEmpty" after="grabMemoId">
             <actualResult type="const">$grabMemoId</actualResult>
@@ -216,10 +188,12 @@
         <click selector="{{AdminCreditMemosGridSection.memoId}}" stepKey="clickView"/>
         <waitForPageLoad stepKey="waitForCreditMemo"/>
         <scrollTo selector="{{AdminCreditMemoViewTotalSection.subtotal}}" stepKey="scrollToTotal"/>
-        <waitForText selector="{{AdminCreditMemoViewTotalSection.subtotal}}" userInput="$20.00" stepKey="seeSubtotal"/>
-        <waitForText selector="{{AdminCreditMemoViewTotalSection.adjustmentRefund}}" userInput="$0.00" stepKey="seeAdjustmentRefund"/>
-        <waitForText selector="{{AdminCreditMemoViewTotalSection.adjustmentFee}}" userInput="$0.00" stepKey="seeAdjustmentFee"/>
-        <waitForText selector="{{AdminCreditMemoViewTotalSection.grandTotal}}" userInput="$30.00" stepKey="assertRefundOnCreditMemoTab"/>
+        <actionGroup ref="AssertAdminCreditMemoViewPageTotalsActionGroup" stepKey="assertCreditMemoViewPageTotals">
+            <argument name="subtotal" value="$20.00"/>
+            <argument name="adjustmentRefund" value="$0.00"/>
+            <argument name="adjustmentFee" value="$00.00"/>
+            <argument name="grandTotal" value="$30.00"/>
+        </actionGroup>
         <!-- Assert CreditMemo items -->
         <scrollTo selector="{{AdminCreditMemoViewItemsSection.blockItemsRefunded}}" stepKey="scrollToRefundedItems"/>
         <waitForText selector="{{AdminCreditMemoItemsSection.itemName('1')}}" userInput="$$createMSISimpleProduct1.name$$" stepKey="seeProductName"/>
