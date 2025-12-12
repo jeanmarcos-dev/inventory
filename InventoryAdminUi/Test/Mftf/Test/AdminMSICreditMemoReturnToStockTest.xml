@@ -190,7 +190,7 @@
         <actionGroup ref="AssertAdminCreditMemoViewPageTotalsActionGroup" stepKey="assertCreditMemoViewPageTotals">
             <argument name="subtotal" value="$20.00"/>
             <argument name="adjustmentRefund" value="$0.00"/>
-            <argument name="adjustmentFee" value="$00.00"/>
+            <argument name="adjustmentFee" value="$0.00"/>
             <argument name="grandTotal" value="$30.00"/>
         </actionGroup>
         <!-- Assert CreditMemo items -->
