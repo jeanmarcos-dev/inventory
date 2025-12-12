@@ -12,7 +12,7 @@
         <annotations>
             <stories value="MSI Source Creation and Return Flow"/>
             <title value="Credit memo for order with 2 Simple products on Test stock after full invoice and shipment created in Admin"/>
-            <description value="Admin validates credit memo for order with 2 Simple products on Test stock after full invoice and shipment created"/>
+            <description value="Admin validates credit memo for order with two Simple products on Test stock after full invoice and shipment created"/>
             <testCaseId value="AC-6589"/>
             <severity value="CRITICAL"/>
             <group value="msi"/>
