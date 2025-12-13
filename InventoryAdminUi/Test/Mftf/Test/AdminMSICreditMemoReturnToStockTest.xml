@@ -160,6 +160,7 @@
         <actionGroup ref="StartCreateInvoiceFromOrderPageActionGroup" stepKey="startCreateInvoice"/>
         <!--  Step 12: Click button "Submit Invoice" -->
         <actionGroup ref="SubmitInvoiceActionGroup" stepKey="submitInvoice"/>
+        <grabTextFrom selector="|Order # (\d+)|" stepKey="grabOrderNumber"/>
         <actionGroup ref="AdminOpenInvoiceTabFromOrderPageActionGroup" stepKey="openInvoiceTab"/>
         <waitForElementClickable selector="{{AdminOrderInvoicesTabSection.viewInvoice}}" stepKey="waitForInvoicesTabOpened"/>
         <click selector="{{AdminOrderInvoicesTabSection.viewInvoice}}" stepKey="clickViewInvoice"/>
