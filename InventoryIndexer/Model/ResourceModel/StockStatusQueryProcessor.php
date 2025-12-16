@@ -98,6 +98,17 @@ class StockStatusQueryProcessor implements QueryProcessorInterface
 
         $combinedUnion = $connection->select()->union([$select, $anyStock], Select::SQL_UNION_ALL);
 
-        return $connection->select()->from(['t' => $combinedUnion]);
+        return $connection->select()
+            ->from(
+                ['t' => $combinedUnion],
+                [
+                    'entity_id',
+                    'website_id',
+                    'stock_id',
+                    'qty' => new \Zend_Db_Expr('MIN(t.qty)'),
+                    'status' => new \Zend_Db_Expr('MAX(t.status)')
+                ]
+            )
+            ->group(['entity_id', 'website_id', 'stock_id']);
     }
 }
