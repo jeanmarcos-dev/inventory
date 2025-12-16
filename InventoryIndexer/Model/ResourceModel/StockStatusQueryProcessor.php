@@ -11,7 +11,6 @@ use Magento\CatalogInventory\Model\ResourceModel\Indexer\Stock\QueryProcessorInt
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Select;
 use Magento\InventoryIndexer\Model\StockIndexTableNameResolverInterface;
-use Zend_Db_Select;
 
 class StockStatusQueryProcessor implements QueryProcessorInterface
 {
@@ -26,11 +25,14 @@ class StockStatusQueryProcessor implements QueryProcessorInterface
     }
 
     /**
+     * Processes stock status query to include stock status from all stocks
+     *
      * @param Select $select
      * @param int[]|null $entityIds
      * @param bool $usePrimaryTable
      * @return Select
      * @throws \Zend_Db_Select_Exception
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function processQuery(Select $select, $entityIds = null, $usePrimaryTable = false)
     {
@@ -83,7 +85,7 @@ class StockStatusQueryProcessor implements QueryProcessorInterface
             return $select;
         }
 
-        $unionAllStocks = $connection->select()->union($unionParts, Zend_Db_Select::SQL_UNION_ALL);
+        $unionAllStocks = $connection->select()->union($unionParts, Select::SQL_UNION_ALL);
         $anyStock = $connection->select()
             ->from(['u' => $unionAllStocks], [
                 'entity_id'  => 'u.product_id',
@@ -94,10 +96,7 @@ class StockStatusQueryProcessor implements QueryProcessorInterface
             ])
             ->group('u.product_id');
 
-        $combinedUnion = $connection->select()->union(
-            [$select, $anyStock],
-            Zend_Db_Select::SQL_UNION_ALL
-        );
+        $combinedUnion = $connection->select()->union([$select, $anyStock], Select::SQL_UNION_ALL);
 
         return $connection->select()->from(['t' => $combinedUnion]);
     }
