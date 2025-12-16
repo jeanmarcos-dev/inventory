@@ -104,4 +104,11 @@
             <argument name="areProductsSalable" xsi:type="object">Magento\InventoryIndexer\Model\AreMultipleProductsSalable</argument>
         </arguments>
     </type>
+    <type name="Magento\CatalogInventory\Model\ResourceModel\Indexer\Stock\QueryProcessorComposite">
+        <arguments>
+            <argument name="queryProcessors" xsi:type="array">
+                <item name="bundle" xsi:type="object">Magento\InventoryIndexer\Model\ResourceModel\StockStatusQueryProcessor</item>
+            </argument>
+        </arguments>
+    </type>
 </config>
