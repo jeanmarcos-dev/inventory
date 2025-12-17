@@ -36,6 +36,7 @@ class StockStatusQueryProcessor implements QueryProcessorInterface
      */
     public function processQuery(Select $select, $entityIds = null, $usePrimaryTable = false)
     {
+        return $select;
         if (empty($entityIds)) {
             return $select;
         }
@@ -68,6 +69,8 @@ class StockStatusQueryProcessor implements QueryProcessorInterface
                     ->from(['s' => $stockIndexTable], [
                         'product_id'   => 's.product_id',
                         'stock_status' => 's.is_salable',
+                        $stockId => 'stock_id',
+                        'quantity' => 's.quantity'
                     ])
                     ->where('s.product_id IN (?)', $entityIds);
             } elseif (isset($cols['sku'])) {
@@ -75,6 +78,8 @@ class StockStatusQueryProcessor implements QueryProcessorInterface
                     ->from(['s' => $stockIndexTable], [
                         'product_id'   => 'e.entity_id',
                         'stock_status' => 's.is_salable',
+                        $stockId => 'stock_id',
+                        'quantity' => 's.quantity'
                     ])
                     ->joinInner(['e' => $productEntityTable], 'e.sku = s.sku', [])
                     ->where('e.entity_id IN (?)', $entityIds);
@@ -89,9 +94,9 @@ class StockStatusQueryProcessor implements QueryProcessorInterface
         $anyStock = $connection->select()
             ->from(['u' => $unionAllStocks], [
                 'entity_id'  => 'u.product_id',
-                'website_id' => new \Zend_Db_Expr('0'),
-                'stock_id'   => new \Zend_Db_Expr('1'),
-                'qty'        => new \Zend_Db_Expr('0'),
+                'website_id' => new \Zend_Db_Expr('0'),//posibil aici sa fie problema din cauza suprapunerii cheilor unice. Ar trebui adevaratul website_id
+                'stock_id',
+                'qty' => 'quantity',
                 'status'     => new \Zend_Db_Expr('MAX(u.stock_status)'),
             ])
             ->group('u.product_id');
