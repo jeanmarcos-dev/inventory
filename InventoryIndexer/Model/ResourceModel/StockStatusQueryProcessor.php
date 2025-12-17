@@ -105,7 +105,7 @@ class StockStatusQueryProcessor implements QueryProcessorInterface
                     'entity_id',
                     'website_id',
                     'stock_id',
-                    'qty' => new \Zend_Db_Expr('MIN(t.qty)'),
+                    'qty' => new \Zend_Db_Expr('MAX(t.qty)'),
                     'status' => new \Zend_Db_Expr('MAX(t.status)')
                 ]
             )
