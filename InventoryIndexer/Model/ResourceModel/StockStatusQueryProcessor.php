@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Magento\InventoryIndexer\Model\ResourceModel;
 
 use Magento\CatalogInventory\Model\ResourceModel\Indexer\Stock\QueryProcessorInterface;
+use Magento\CatalogInventory\Model\ResourceModel\Indexer\Stock\StatusExpression\DefaultExpression;
+use Magento\CatalogInventory\Model\ResourceModel\Indexer\Stock\StatusExpression\ExpressionInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Select;
 use Magento\InventoryCatalogApi\Api\DefaultStockProviderInterface;
@@ -16,15 +18,24 @@ use Magento\InventoryIndexer\Model\StockIndexTableNameResolverInterface;
 class StockStatusQueryProcessor implements QueryProcessorInterface
 {
     /**
+     * @var ExpressionInterface
+     */
+    private ExpressionInterface $statusExpression;
+
+    /**
      * @param ResourceConnection $resource
      * @param StockIndexTableNameResolverInterface $stockTableResolver
      * @param DefaultStockProviderInterface $defaultStockProvider
+     * @param ExpressionInterface|null $defaultExpression
      */
     public function __construct(
         private readonly ResourceConnection $resource,
         private readonly StockIndexTableNameResolverInterface $stockTableResolver,
-        private readonly DefaultStockProviderInterface $defaultStockProvider
+        private readonly DefaultStockProviderInterface $defaultStockProvider,
+        ?ExpressionInterface $defaultExpression = null,
     ) {
+        $this->statusExpression = $defaultExpression ?? \Magento\Framework\App\ObjectManager::getInstance()
+            ->get(DefaultExpression::class);
     }
 
     /**
@@ -49,23 +60,37 @@ class StockStatusQueryProcessor implements QueryProcessorInterface
         }
 
         $productEntityTable = $this->resource->getTableName('catalog_product_entity');
+        $catalogInventoryStockItemTable = $this->resource->getTableName('cataloginventory_stock_item');
         $unionParts = [];
         $connection = $this->resource->getConnection();
         foreach ($stockWebsiteMap as $stockId => $websiteIds) {
             $stockIndexTable = $this->resource->getTableName(
                 $this->stockTableResolver->execute($stockId)
             );
+            $isBundle = $this->hasBundleTypeCondition((string)$select);
 
             $baseInventorySelectFactory = function (int $websiteId) use (
                 $connection,
                 $stockIndexTable,
                 $productEntityTable,
+                $catalogInventoryStockItemTable,
                 $entityIds,
-                $stockId
+                $stockId,
+                $isBundle
             ): Select {
                 $websiteExpr = new \Zend_Db_Expr((string)$websiteId);
                 $stockExpr   = new \Zend_Db_Expr((string)$stockId);
-                $qtyExpr     = new \Zend_Db_Expr('s.quantity');
+                $qtyExpr     = $connection->getCheckSql('s.quantity > 0', 's.quantity', 0);
+
+                if ($isBundle) {
+                    $statusExpr = $this->statusExpression->getExpression($connection, false);
+                } else {
+                    $statusExpr = $connection->getCheckSql(
+                        'cisi.use_config_manage_stock = 0 AND cisi.manage_stock = 0',
+                        '1',
+                        's.is_salable'
+                    );
+                }
 
                 return $connection->select()
                     ->from(['s' => $stockIndexTable], [
@@ -73,9 +98,14 @@ class StockStatusQueryProcessor implements QueryProcessorInterface
                         'website_id' => $websiteExpr,
                         'stock_id'   => $stockExpr,
                         'qty'        => $qtyExpr,
-                        'status'     => new \Zend_Db_Expr('s.is_salable'),
+                        'status'     => $statusExpr
                     ])
                     ->joinInner(['e' => $productEntityTable], 'e.sku = s.sku', [])
+                    ->joinInner(
+                        ['cisi' => $catalogInventoryStockItemTable],
+                        'cisi.product_id = e.entity_id',
+                        []
+                    )
                     ->where('e.entity_id IN (?)', $entityIds);
             };
 
@@ -141,5 +171,17 @@ class StockStatusQueryProcessor implements QueryProcessorInterface
         }
 
         return $stockWebsiteMap;
+    }
+
+    /**
+     * Returns true if the SQL contains a condition like: e.type_id = 'bundle'
+     *
+     * @param string $sql
+     * @return bool
+     */
+    private function hasBundleTypeCondition(string $sql): bool
+    {
+        $pattern = '/(?:^|[\s(])`?e`?\s*\.\s*`?type_id`?\s*=\s*(["\'])\s*bundle\s*\1/i';
+        return preg_match($pattern, $sql) === 1;
     }
 }
