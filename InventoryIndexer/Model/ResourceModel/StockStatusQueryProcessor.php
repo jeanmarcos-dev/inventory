@@ -10,6 +10,7 @@ namespace Magento\InventoryIndexer\Model\ResourceModel;
 use Magento\CatalogInventory\Model\ResourceModel\Indexer\Stock\QueryProcessorInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Select;
+use Magento\InventoryCatalogApi\Api\DefaultStockProviderInterface;
 use Magento\InventoryIndexer\Model\StockIndexTableNameResolverInterface;
 
 class StockStatusQueryProcessor implements QueryProcessorInterface
@@ -17,10 +18,12 @@ class StockStatusQueryProcessor implements QueryProcessorInterface
     /**
      * @param ResourceConnection $resource
      * @param StockIndexTableNameResolverInterface $stockTableResolver
+     * @param DefaultStockProviderInterface $defaultStockProvider
      */
     public function __construct(
         private readonly ResourceConnection $resource,
-        private readonly StockIndexTableNameResolverInterface $stockTableResolver
+        private readonly StockIndexTableNameResolverInterface $stockTableResolver,
+        private readonly DefaultStockProviderInterface $defaultStockProvider
     ) {
     }
 
@@ -36,53 +39,48 @@ class StockStatusQueryProcessor implements QueryProcessorInterface
      */
     public function processQuery(Select $select, $entityIds = null, $usePrimaryTable = false)
     {
-        return $select;
         if (empty($entityIds)) {
             return $select;
         }
 
-        $connection = $this->resource->getConnection();
-        $stockIds = $connection->fetchCol(
-            $connection->select()
-                ->from($this->resource->getTableName('inventory_stock'), ['stock_id'])
-        );
-
-        if (!$stockIds) {
+        $stockWebsiteMap = $this->getStockWebsiteMap();
+        if (!$stockWebsiteMap) {
             return $select;
         }
 
         $productEntityTable = $this->resource->getTableName('catalog_product_entity');
-
         $unionParts = [];
-        foreach ($stockIds as $stockId) {
+        $connection = $this->resource->getConnection();
+        foreach ($stockWebsiteMap as $stockId => $websiteIds) {
             $stockIndexTable = $this->resource->getTableName(
-                $this->stockTableResolver->execute((int)$stockId)
+                $this->stockTableResolver->execute($stockId)
             );
-            $cols = $connection->describeTable($stockIndexTable);
 
-            if (!isset($cols['is_salable'])) {
-                continue;
-            }
+            $baseInventorySelectFactory = function (int $websiteId) use (
+                $connection,
+                $stockIndexTable,
+                $productEntityTable,
+                $entityIds,
+                $stockId
+            ): Select {
+                $websiteExpr = new \Zend_Db_Expr((string)$websiteId);
+                $stockExpr   = new \Zend_Db_Expr((string)$stockId);
+                $qtyExpr     = new \Zend_Db_Expr('s.quantity');
 
-            if (isset($cols['product_id'])) {
-                $unionParts[] = $connection->select()
+                return $connection->select()
                     ->from(['s' => $stockIndexTable], [
-                        'product_id'   => 's.product_id',
-                        'stock_status' => 's.is_salable',
-                        $stockId => 'stock_id',
-                        'quantity' => 's.quantity'
-                    ])
-                    ->where('s.product_id IN (?)', $entityIds);
-            } elseif (isset($cols['sku'])) {
-                $unionParts[] = $connection->select()
-                    ->from(['s' => $stockIndexTable], [
-                        'product_id'   => 'e.entity_id',
-                        'stock_status' => 's.is_salable',
-                        $stockId => 'stock_id',
-                        'quantity' => 's.quantity'
+                        'entity_id'  => 'e.entity_id',
+                        'website_id' => $websiteExpr,
+                        'stock_id'   => $stockExpr,
+                        'qty'        => $qtyExpr,
+                        'status'     => new \Zend_Db_Expr('s.is_salable'),
                     ])
                     ->joinInner(['e' => $productEntityTable], 'e.sku = s.sku', [])
                     ->where('e.entity_id IN (?)', $entityIds);
+            };
+
+            foreach ($websiteIds as $websiteId) {
+                $unionParts[] = $baseInventorySelectFactory($websiteId);
             }
         }
 
@@ -90,18 +88,8 @@ class StockStatusQueryProcessor implements QueryProcessorInterface
             return $select;
         }
 
-        $unionAllStocks = $connection->select()->union($unionParts, Select::SQL_UNION_ALL);
-        $anyStock = $connection->select()
-            ->from(['u' => $unionAllStocks], [
-                'entity_id'  => 'u.product_id',
-                'website_id' => new \Zend_Db_Expr('0'),//posibil aici sa fie problema din cauza suprapunerii cheilor unice. Ar trebui adevaratul website_id
-                'stock_id',
-                'qty' => 'quantity',
-                'status'     => new \Zend_Db_Expr('MAX(u.stock_status)'),
-            ])
-            ->group('u.product_id');
-
-        $combinedUnion = $connection->select()->union([$select, $anyStock], Select::SQL_UNION_ALL);
+        $stockInventoryUnion = $connection->select()->union($unionParts, Select::SQL_UNION_ALL);
+        $combinedUnion = $connection->select()->union([$select, $stockInventoryUnion], Select::SQL_UNION_ALL);
 
         return $connection->select()
             ->from(
@@ -110,10 +98,48 @@ class StockStatusQueryProcessor implements QueryProcessorInterface
                     'entity_id',
                     'website_id',
                     'stock_id',
-                    'qty' => new \Zend_Db_Expr('MAX(t.qty)'),
-                    'status' => new \Zend_Db_Expr('MAX(t.status)')
+                    'qty'    => new \Zend_Db_Expr('MAX(t.qty)'),
+                    'status' => new \Zend_Db_Expr('MAX(t.status)'),
                 ]
             )
             ->group(['entity_id', 'website_id', 'stock_id']);
+    }
+
+    /**
+     * Retrieve map of stock IDs to website IDs
+     *
+     * @return array
+     */
+    private function getStockWebsiteMap(): array
+    {
+        $stockWebsiteMap = [];
+        $connection = $this->resource->getConnection();
+        $rows = $connection->fetchAll(
+            $connection->select()
+                ->from(
+                    ['s' => $this->resource->getTableName('inventory_stock')],
+                    ['stock_id' => 's.stock_id']
+                )
+                ->join(
+                    ['sc' => $this->resource->getTableName('inventory_stock_sales_channel')],
+                    'sc.stock_id = s.stock_id AND sc.type = "website"',
+                    []
+                )
+                ->join(
+                    ['w' => $this->resource->getTableName('store_website')],
+                    'w.code = sc.code',
+                    ['website_id' => 'w.website_id']
+                )
+        );
+        foreach ($rows as $row) {
+            $stockId = (int)$row['stock_id'];
+            if ($this->defaultStockProvider->getId() === $stockId) {
+                continue;
+            }
+
+            $stockWebsiteMap[$stockId][] = (int)$row['website_id'];
+        }
+
+        return $stockWebsiteMap;
     }
 }
