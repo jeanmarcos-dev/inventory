@@ -39,20 +39,9 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
      */
     public function execute(Select $select): Select
     {
-        $stockSelect = $this->buildInventorySelect();
-        $conn = $this->resource->getConnection();
-        $conn->select()
-            ->from(['st' => $stockSelect], [
-                'product_id',
-                'website_id',
-                'stock_id',
-                'qty',
-                'stock_status' => new Zend_Db_Expr('MAX(stock_status)'),
-            ])
-            ->group(['product_id', 'website_id']);
         $select->joinInner(
             ['stock' => $this->buildInventorySelect()],
-            'stock.product_id = bs.product_id',
+            'stock.product_id = bs.product_id AND stock.website_id = idx.website_id',
             []
         );
         $select->where('stock_status = ?', Stock::STOCK_IN_STOCK);
