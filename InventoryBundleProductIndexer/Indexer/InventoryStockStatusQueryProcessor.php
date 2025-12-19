@@ -14,6 +14,7 @@ use Magento\CatalogInventory\Model\Stock;
 use Magento\Eav\Model\Config;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Select;
+use Magento\Framework\EntityManager\MetadataPool;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\InventoryIndexer\Model\StockIndexTableNameResolverInterface;
 use Zend_Db_Expr;
@@ -24,11 +25,13 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
      * @param ResourceConnection $resource
      * @param StockIndexTableNameResolverInterface $stockTableResolver
      * @param Config $eavConfig
+     * @param MetadataPool $metadataPool
      */
     public function __construct(
         private readonly ResourceConnection $resource,
         private readonly StockIndexTableNameResolverInterface $stockTableResolver,
-        private readonly Config $eavConfig
+        private readonly Config $eavConfig,
+        private readonly MetadataPool $metadataPool
     ) {
     }
 
@@ -41,7 +44,7 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
     {
         $select->joinInner(
             ['stock' => $this->buildInventorySelect()],
-            'stock.product_id = bs.product_id AND stock.website_id = idx.website_id',
+            'stock.product_id = bs.product_id',
             []
         );
         $select->where('stock_status = ?', Stock::STOCK_IN_STOCK);
@@ -68,6 +71,8 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
             Product::ENTITY,
             ProductInterface::STATUS
         )->getId();
+        $metadata = $this->metadataPool->getMetadata(ProductInterface::class);
+        $linkField = $metadata->getLinkField();
 
         $legacyTable = $this->resource->getTableName('cataloginventory_stock_status');
         $cpeTable = $this->resource->getTableName('catalog_product_entity');
@@ -86,7 +91,7 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
             ->from(['p' => $cpeTable], ['product_id' => 'p.entity_id'])
             ->joinInner(
                 ['p_status' => $cpeiTable],
-                'p_status.row_id = p.row_id'
+                'p_status.' . $linkField . ' = p.' . $linkField
                 . ' AND p_status.attribute_id = ' . $statusAttributeId
                 . ' AND p_status.value = 1',
                 []
@@ -99,17 +104,25 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
             ->from(['p' => $cpeTable], ['product_id' => 'c.entity_id'])
             ->joinInner(
                 ['p_status' => $cpeiTable],
-                'p_status.row_id = p.row_id'
+                'p_status.' . $linkField . ' = p.' . $linkField
                 . ' AND p_status.attribute_id = ' . $statusAttributeId
                 . ' AND p_status.value = 1',
                 []
             )
-            ->joinInner(['bo' => $bundleOptTable], 'bo.parent_id = p.entity_id', [])
-            ->joinInner(['bs' => $bundleSelTable], 'bs.option_id = bo.option_id', [])
+            ->joinInner(
+                ['bo' => $bundleOptTable],
+                'bo.parent_id = p.' . $linkField,
+                []
+            )
+            ->joinInner(
+                ['bs' => $bundleSelTable],
+                'bs.option_id = bo.option_id AND bs.parent_product_id = p.' . $linkField,
+                []
+            )
             ->joinInner(['c' => $cpeTable], 'c.entity_id = bs.product_id', [])
             ->joinInner(
                 ['c_status' => $cpeiTable],
-                'c_status.row_id = c.row_id'
+                'c_status.' . $linkField . ' = c.' . $linkField
                 . ' AND c_status.attribute_id = ' . $statusAttributeId
                 . ' AND c_status.value = 1',
                 []
