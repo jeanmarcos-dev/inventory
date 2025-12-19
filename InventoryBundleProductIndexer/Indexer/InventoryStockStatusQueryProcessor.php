@@ -49,7 +49,7 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
                 'qty',
                 'stock_status' => new Zend_Db_Expr('MAX(stock_status)'),
             ])
-            ->group('product_id');
+            ->group(['product_id', 'website_id']);
         $select->joinInner(
             ['stock' => $this->buildInventorySelect()],
             'stock.product_id = bs.product_id',
@@ -181,7 +181,7 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
                 continue;
             }
 
-            $qtyExpr = new Zend_Db_Expr('misi.quantity');
+            $qtyExpr = new Zend_Db_Expr('msi.quantity');
             $statusExpr = new Zend_Db_Expr(
                 "IF(cisi.use_config_manage_stock = 0 AND cisi.manage_stock = 0, 1, IFNULL(msi.is_salable, 0))"
             );
