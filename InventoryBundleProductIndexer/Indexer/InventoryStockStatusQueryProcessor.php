@@ -36,6 +36,8 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
     }
 
     /**
+     * Apply stock status filter to the Select
+     *
      * @param Select $select
      * @return Select
      * @throws \Zend_Db_Select_Exception
