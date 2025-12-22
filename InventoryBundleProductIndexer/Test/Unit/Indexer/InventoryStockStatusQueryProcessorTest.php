@@ -81,7 +81,7 @@ class InventoryStockStatusQueryProcessorTest extends TestCase
      */
     public function testExecuteInStockAndResolvesNonDefaultMsiStockOnly(): void
     {
-        $this->resource->expects($this->once())
+        $this->resource->expects($this->exactly(3))
             ->method('getConnection')
             ->willReturn($this->connection);
 
@@ -173,7 +173,7 @@ class InventoryStockStatusQueryProcessorTest extends TestCase
      */
     public function testExecuteStillWorksWhenNoInventoryPartsAreGenerated(): void
     {
-        $this->resource->expects($this->once())
+        $this->resource->expects($this->exactly(3))
             ->method('getConnection')
             ->willReturn($this->connection);
 
