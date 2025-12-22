@@ -40,7 +40,7 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
      *
      * @param Select $select
      * @return Select
-     * @throws \Zend_Db_Select_Exception
+     * @throws \Zend_Db_Select_Exception|LocalizedException
      */
     public function execute(Select $select): Select
     {
@@ -68,69 +68,15 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
      */
     private function buildInventorySelect(): Select
     {
-        $conn = $this->resource->getConnection();
         $statusAttributeId = (int)$this->eavConfig->getAttribute(
             Product::ENTITY,
             ProductInterface::STATUS
         )->getId();
-        $metadata = $this->metadataPool->getMetadata(ProductInterface::class);
-        $linkField = $metadata->getLinkField();
 
         $legacyTable = $this->resource->getTableName('cataloginventory_stock_status');
-        $cpeTable = $this->resource->getTableName('catalog_product_entity');
-        $cpeiTable = $this->resource->getTableName('catalog_product_entity_int');
-        $cisiTable = $this->resource->getTableName('cataloginventory_stock_item');
+        $interestingProductIds = $this->generateProductIds($statusAttributeId);
 
-        $bundleSelTable = $this->resource->getTableName('catalog_product_bundle_selection');
-        $bundleOptTable = $this->resource->getTableName('catalog_product_bundle_option');
-
-        /**
-         * - bundle parents (enabled)
-         * - selection children (enabled) that belong to enabled bundle parents
-         *
-         */
-        $bundleParents = $conn->select()
-            ->from(['p' => $cpeTable], ['product_id' => 'p.entity_id'])
-            ->joinInner(
-                ['p_status' => $cpeiTable],
-                'p_status.' . $linkField . ' = p.' . $linkField
-                . ' AND p_status.attribute_id = ' . $statusAttributeId
-                . ' AND p_status.value = 1',
-                []
-            )
-            ->where('p.type_id = ?', 'bundle');
-
-        $selectionChildren = $conn->select()
-            ->from(['p' => $cpeTable], ['product_id' => 'c.entity_id'])
-            ->joinInner(
-                ['p_status' => $cpeiTable],
-                'p_status.' . $linkField . ' = p.' . $linkField
-                . ' AND p_status.attribute_id = ' . $statusAttributeId
-                . ' AND p_status.value = 1',
-                []
-            )
-            ->joinInner(
-                ['bo' => $bundleOptTable],
-                'bo.parent_id = p.' . $linkField,
-                []
-            )
-            ->joinInner(
-                ['bs' => $bundleSelTable],
-                'bs.option_id = bo.option_id AND bs.parent_product_id = p.' . $linkField,
-                []
-            )
-            ->joinInner(['c' => $cpeTable], 'c.entity_id = bs.product_id', [])
-            ->joinInner(
-                ['c_status' => $cpeiTable],
-                'c_status.' . $linkField . ' = c.' . $linkField
-                . ' AND c_status.attribute_id = ' . $statusAttributeId
-                . ' AND c_status.value = 1',
-                []
-            )
-            ->where('p.type_id = ?', 'bundle');
-
-        $interestingProductIds = $conn->select()->union([$bundleParents, $selectionChildren], Select::SQL_UNION_ALL);
-
+        $conn = $this->resource->getConnection();
         $legacySelect = $conn->select()
             ->from(['l' => $legacyTable], [
                 'product_id',
@@ -144,6 +90,38 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
                 'ip.product_id = l.product_id',
                 []
             );
+
+        $msiParts = $this->addWebsiteStocks($interestingProductIds);
+        if (!$msiParts) {
+            return $legacySelect;
+        }
+
+        $msiUnion = $conn->select()->union($msiParts, Select::SQL_UNION_ALL);
+        $combined = $conn->select()->union([$legacySelect, $msiUnion], Select::SQL_UNION_ALL);
+
+        return $conn->select()
+            ->from(['stock_all' => $combined], [
+                'product_id',
+                'website_id',
+                'stock_id',
+                'qty' => new Zend_Db_Expr('MAX(stock_all.qty)'),
+                'stock_status' => new Zend_Db_Expr('MAX(stock_all.stock_status)'),
+            ])
+            ->group(['product_id', 'website_id', 'stock_id']);
+    }
+
+    /**
+     * Generate Select parts for each non-default stock/website
+     *
+     * @param Select $interestingProductIds
+     * @return array
+     */
+    private function addWebsiteStocks(Select $interestingProductIds): array
+    {
+        $cisiTable = $this->resource->getTableName('cataloginventory_stock_item');
+        $cpeTable = $this->resource->getTableName('catalog_product_entity');
+        $conn = $this->resource->getConnection();
+        $msiParts = [];
 
         $stockWebsiteRows = $conn->fetchAll(
             $conn->select()
@@ -159,8 +137,6 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
                     ['website_id' => 'w.website_id']
                 )
         );
-
-        $msiParts = [];
 
         foreach ($stockWebsiteRows as $row) {
             $stockId = (int)$row['stock_id'];
@@ -232,21 +208,71 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
             }
         }
 
-        if (!$msiParts) {
-            return $legacySelect;
-        }
+        return $msiParts;
+    }
 
-        $msiUnion = $conn->select()->union($msiParts, Select::SQL_UNION_ALL);
-        $combined = $conn->select()->union([$legacySelect, $msiUnion], Select::SQL_UNION_ALL);
+    /**
+     * Generate products of interest: enabled bundle parents and their enabled selection children
+     *
+     * @param int $statusAttributeId
+     * @return Select
+     * @throws \Zend_Db_Select_Exception
+     */
+    private function generateProductIds(int $statusAttributeId): Select
+    {
+        $conn = $this->resource->getConnection();
+        $cpeiTable = $this->resource->getTableName('catalog_product_entity_int');
+        $cpeTable = $this->resource->getTableName('catalog_product_entity');
+        $bundleSelTable = $this->resource->getTableName('catalog_product_bundle_selection');
+        $bundleOptTable = $this->resource->getTableName('catalog_product_bundle_option');
 
-        return $conn->select()
-            ->from(['stock_all' => $combined], [
-                'product_id',
-                'website_id',
-                'stock_id',
-                'qty' => new Zend_Db_Expr('MAX(stock_all.qty)'),
-                'stock_status' => new Zend_Db_Expr('MAX(stock_all.stock_status)'),
-            ])
-            ->group(['product_id', 'website_id', 'stock_id']);
+        $metadata = $this->metadataPool->getMetadata(ProductInterface::class);
+        $linkField = $metadata->getLinkField();
+
+        /**
+         * - bundle parents (enabled)
+         * - selection children (enabled) that belong to enabled bundle parents
+         */
+        $bundleParents = $conn->select()
+            ->from(['p' => $cpeTable], ['product_id' => 'p.entity_id'])
+            ->joinInner(
+                ['p_status' => $cpeiTable],
+                'p_status.' . $linkField . ' = p.' . $linkField
+                . ' AND p_status.attribute_id = ' . $statusAttributeId
+                . ' AND p_status.value = 1',
+                []
+            )
+            ->where('p.type_id = ?', 'bundle');
+
+        $selectionChildren = $conn->select()
+            ->from(['p' => $cpeTable], ['product_id' => 'c.entity_id'])
+            ->joinInner(
+                ['p_status' => $cpeiTable],
+                'p_status.' . $linkField . ' = p.' . $linkField
+                . ' AND p_status.attribute_id = ' . $statusAttributeId
+                . ' AND p_status.value = 1',
+                []
+            )
+            ->joinInner(
+                ['bo' => $bundleOptTable],
+                'bo.parent_id = p.' . $linkField,
+                []
+            )
+            ->joinInner(
+                ['bs' => $bundleSelTable],
+                'bs.option_id = bo.option_id AND bs.parent_product_id = p.' . $linkField,
+                []
+            )
+            ->joinInner(['c' => $cpeTable], 'c.entity_id = bs.product_id', [])
+            ->joinInner(
+                ['c_status' => $cpeiTable],
+                'c_status.' . $linkField . ' = c.' . $linkField
+                . ' AND c_status.attribute_id = ' . $statusAttributeId
+                . ' AND c_status.value = 1',
+                []
+            )
+            ->where('p.type_id = ?', 'bundle');
+
+        return $conn->select()->union([$bundleParents, $selectionChildren], Select::SQL_UNION_ALL);
     }
 }

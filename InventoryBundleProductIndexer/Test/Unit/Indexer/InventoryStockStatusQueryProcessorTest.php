@@ -22,6 +22,9 @@ use Magento\InventoryIndexer\Model\StockIndexTableNameResolverInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class InventoryStockStatusQueryProcessorTest extends TestCase
 {
     /** @var ResourceConnection|MockObject */
@@ -45,6 +48,9 @@ class InventoryStockStatusQueryProcessorTest extends TestCase
     /** @var Select|MockObject */
     private Select $select;
 
+    /**
+     * @var InventoryStockStatusQueryProcessor
+     */
     private InventoryStockStatusQueryProcessor $processor;
 
     /**
