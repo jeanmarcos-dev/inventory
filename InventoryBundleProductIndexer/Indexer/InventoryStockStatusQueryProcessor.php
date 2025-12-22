@@ -96,9 +96,7 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
                 . ' AND p_status.value = 1',
                 []
             )
-            ->where('p.type_id = ?', 'bundle')
-            ->where('p.created_in <= ?', 1)
-            ->where('p.updated_in > ?', 1);
+            ->where('p.type_id = ?', 'bundle');
 
         $selectionChildren = $conn->select()
             ->from(['p' => $cpeTable], ['product_id' => 'c.entity_id'])
@@ -127,11 +125,7 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
                 . ' AND c_status.value = 1',
                 []
             )
-            ->where('p.type_id = ?', 'bundle')
-            ->where('p.created_in <= ?', 1)
-            ->where('p.updated_in > ?', 1)
-            ->where('c.created_in <= ?', 1)
-            ->where('c.updated_in > ?', 1);
+            ->where('p.type_id = ?', 'bundle');
 
         $interestingProductIds = $conn->select()->union([$bundleParents, $selectionChildren], Select::SQL_UNION_ALL);
 
