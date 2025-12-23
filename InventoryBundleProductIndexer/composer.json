@@ -11,11 +11,11 @@
         "magento/module-inventory-catalog-api": "*",
         "magento/module-inventory-indexer": "*",
         "magento/module-inventory-multi-dimensional-indexer-api": "*",
-        "magento/module-inventory-configuration-api": "*",
-        "magento/module-catalog-inventory": "*"
+        "magento/module-inventory-configuration-api": "*"
     },
     "suggest": {
-        "magento/module-inventory": "*"
+        "magento/module-inventory": "*",
+        "magento/module-catalog-inventory": "*"
     },
     "type": "magento2-module",
     "license": [
