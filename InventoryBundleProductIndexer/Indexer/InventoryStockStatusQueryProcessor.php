@@ -17,6 +17,7 @@ use Magento\Framework\EntityManager\MetadataPool;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\InventoryIndexer\Model\StockIndexTableNameResolverInterface;
 use Zend_Db_Expr;
+use Magento\CatalogInventory\Model\Stock;
 
 class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInterface
 {
@@ -48,7 +49,7 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
             'stock.product_id = bs.product_id',
             []
         );
-        $select->where('stock_status = ?', 1);
+        $select->where('stock_status = ?', Stock::STOCK_IN_STOCK);
 
         return $select;
     }

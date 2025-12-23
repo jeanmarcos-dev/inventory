@@ -11,7 +11,8 @@
         "magento/module-inventory-catalog-api": "*",
         "magento/module-inventory-indexer": "*",
         "magento/module-inventory-multi-dimensional-indexer-api": "*",
-        "magento/module-inventory-configuration-api": "*"
+        "magento/module-inventory-configuration-api": "*",
+        "magento/module-catalog-inventory": "*"
     },
     "suggest": {
         "magento/module-inventory": "*"
