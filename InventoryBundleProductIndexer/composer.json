@@ -14,8 +14,7 @@
         "magento/module-inventory-configuration-api": "*"
     },
     "suggest": {
-        "magento/module-inventory": "*",
-        "magento/module-catalog-inventory": "*"
+        "magento/module-inventory": "*"
     },
     "type": "magento2-module",
     "license": [

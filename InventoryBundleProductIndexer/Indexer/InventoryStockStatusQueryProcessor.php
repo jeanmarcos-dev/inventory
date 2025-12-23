@@ -10,7 +10,6 @@ namespace Magento\InventoryBundleProductIndexer\Indexer;
 use Magento\Bundle\Model\ResourceModel\Indexer\StockStatusQueryProcessorInterface;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Model\Product;
-use Magento\CatalogInventory\Model\Stock;
 use Magento\Eav\Model\Config;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Select;
@@ -49,7 +48,7 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
             'stock.product_id = bs.product_id',
             []
         );
-        $select->where('stock_status = ?', Stock::STOCK_IN_STOCK);
+        $select->where('stock_status = ?', 1);
 
         return $select;
     }
