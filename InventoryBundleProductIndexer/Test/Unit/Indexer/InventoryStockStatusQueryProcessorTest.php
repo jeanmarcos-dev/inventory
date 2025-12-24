@@ -18,6 +18,7 @@ use Magento\Framework\DB\Select;
 use Magento\Framework\EntityManager\EntityMetadataInterface;
 use Magento\Framework\EntityManager\MetadataPool;
 use Magento\InventoryBundleProductIndexer\Indexer\InventoryStockStatusQueryProcessor;
+use Magento\InventoryCatalogApi\Api\DefaultStockProviderInterface;
 use Magento\InventoryIndexer\Model\StockIndexTableNameResolverInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -49,6 +50,11 @@ class InventoryStockStatusQueryProcessorTest extends TestCase
     private Select $select;
 
     /**
+     * @var DefaultStockProviderInterface|MockObject
+     */
+    private DefaultStockProviderInterface $defaultStockProvider;
+
+    /**
      * @var InventoryStockStatusQueryProcessor
      */
     private InventoryStockStatusQueryProcessor $processor;
@@ -64,6 +70,8 @@ class InventoryStockStatusQueryProcessorTest extends TestCase
         $this->eavConfig = $this->createMock(Config::class);
         $this->metadataPool = $this->createMock(MetadataPool::class);
         $this->metadata = $this->createMock(EntityMetadataInterface::class);
+        $this->defaultStockProvider = $this->createMock(DefaultStockProviderInterface::class);
+        $this->defaultStockProvider->expects($this->any())->method('getId')->willReturn(1);
 
         $this->select = $this->createMock(Select::class);
 
@@ -71,7 +79,8 @@ class InventoryStockStatusQueryProcessorTest extends TestCase
             $this->resource,
             $this->stockTableResolver,
             $this->eavConfig,
-            $this->metadataPool
+            $this->metadataPool,
+            $this->defaultStockProvider
         );
     }
 
@@ -197,7 +206,7 @@ class InventoryStockStatusQueryProcessorTest extends TestCase
             ->method('getLinkField')
             ->willReturn('row_id');
 
-        $this->resource->method('getTableName')->willReturnCallback(fn(string $t) => $t);
+        $this->resource->method('getTableName')->willReturnCallback(fn (string $t) => $t);
 
         $this->connection->method('select')
             ->willReturnCallback(function (): Select {

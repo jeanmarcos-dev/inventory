@@ -18,6 +18,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\InventoryIndexer\Model\StockIndexTableNameResolverInterface;
 use Zend_Db_Expr;
 use Magento\CatalogInventory\Model\Stock;
+use Magento\InventoryCatalogApi\Api\DefaultStockProviderInterface;
 
 class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInterface
 {
@@ -26,12 +27,14 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
      * @param StockIndexTableNameResolverInterface $stockTableResolver
      * @param Config $eavConfig
      * @param MetadataPool $metadataPool
+     * @param DefaultStockProviderInterface $defaultStockProvider
      */
     public function __construct(
         private readonly ResourceConnection $resource,
         private readonly StockIndexTableNameResolverInterface $stockTableResolver,
         private readonly Config $eavConfig,
-        private readonly MetadataPool $metadataPool
+        private readonly MetadataPool $metadataPool,
+        private readonly DefaultStockProviderInterface $defaultStockProvider
     ) {
     }
 
@@ -142,7 +145,7 @@ class InventoryStockStatusQueryProcessor implements StockStatusQueryProcessorInt
             $stockId = (int)$row['stock_id'];
             $websiteId = (int)$row['website_id'];
 
-            if ($stockId === 1) {
+            if ($stockId === $this->defaultStockProvider->getId()) {
                 continue;
             }
 
