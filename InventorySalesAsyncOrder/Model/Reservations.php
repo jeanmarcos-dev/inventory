@@ -174,8 +174,8 @@ class Reservations
                     ['parent_item' => null]
                 );
             }
-            $parentItem = ($parentItemId !== null && isset($orderItems[$parentItemId])) 
-                ? $orderItems[$parentItemId] 
+            $parentItem = ($parentItemId !== null && isset($orderItems[$parentItemId]))
+                ? $orderItems[$parentItemId]
                 : null;
             $orderItems[$itemId] = $this->quoteItemToOrderItem->convert($quoteItem, ['parent_item' => $parentItem]);
         }
