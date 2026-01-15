@@ -23,6 +23,8 @@
             <magentoCLI command="config:set {{TurnOnManageStockConfig.path}} {{TurnOnManageStockConfig.value}}" stepKey="setAutoReturnOn"/>
         </before>
         <after>
+            <!--Delete customer created in test-->
+            <actionGroup ref="AdminDeleteAllCustomerActionGroup" stepKey="deleteAllCustomers"/>
             <comment userInput="BIC workaround" stepKey="setAutoReturnOff"/>
         </after>
         <remove keyForRemoval="navigateToCategoryPage"/>
