@@ -9,7 +9,9 @@ namespace Magento\InventoryBundleProduct\Test\Unit\Plugin\InventorySales\Model\I
 
 use Magento\Bundle\Model\Product\Type;
 use Magento\InventoryBundleProduct\Model\IsBundleProductChildrenSalable;
+// phpcs:disable
 use Magento\InventoryBundleProduct\Plugin\InventorySales\Model\IsProductSalableCondition\GetIsQtySalableForBundleProduct;
+// phpcs:enable
 use Magento\InventoryCatalogApi\Model\GetProductTypesBySkusInterface;
 use Magento\InventorySalesApi\Model\GetIsQtySalableInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
