@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2018 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -9,6 +9,7 @@ namespace Magento\InventoryReservations\Test\Unit\Model;
 
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\InventoryReservations\Model\SnakeToCamelCaseConverter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class SnakeToCamelCaseConverterTest extends TestCase
@@ -24,10 +25,10 @@ class SnakeToCamelCaseConverterTest extends TestCase
     }
 
     /**
-     * @dataProvider getElementsToConvert
      * @param array $givenElements
      * @param array $expectedElements
      */
+    #[DataProvider('getElementsToConvert')]
     public function testArrayElementConversion(array $givenElements, array $expectedElements)
     {
         self::assertEquals($expectedElements, $this->snakeToCamelCaseConverter->convert($givenElements));
@@ -36,7 +37,7 @@ class SnakeToCamelCaseConverterTest extends TestCase
     /**
      * @return array
      */
-    public function getElementsToConvert(): array
+    public static function getElementsToConvert(): array
     {
         return [
             'with_empty_data' => [[], []],
