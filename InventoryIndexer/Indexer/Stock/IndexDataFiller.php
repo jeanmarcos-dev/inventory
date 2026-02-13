@@ -57,7 +57,7 @@ class IndexDataFiller
             $productTypesBySkus = $this->getProductTypesBySkus->execute($skuList);
             $productSkusByTypes = array_fill_keys(array_unique(array_values($productTypesBySkus)), []);
             foreach ($productTypesBySkus as $sku => $type) {
-                $productSkusByTypes[$type][] = $sku;
+                $productSkusByTypes[$type ?? ''][] = $sku;
             }
 
             $sourceItemManagementTypes = $this->getSourceItemManagementProductTypes->execute();
