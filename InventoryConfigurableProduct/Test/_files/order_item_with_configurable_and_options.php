@@ -14,10 +14,7 @@ Resolver::getInstance()->requireDataFixture(
 $objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
 
 // phpcs:ignore Generic.Files.LineLength.TooLong
-$addressDataPath = defined('INTEGRATION_TESTS_DIR')
-    ? INTEGRATION_TESTS_DIR . '/testsuite/Magento/Sales/_files/address_data.php'
-    : __DIR__ . '/../../../../../dev/tests/integration/testsuite/Magento/Sales/_files/address_data.php';
-$addressData = include $addressDataPath;
+$addressData = include INTEGRATION_TESTS_DIR . '/testsuite/Magento/Sales/_files/address_data.php';
 
 $billingAddress = $objectManager->create(\Magento\Sales\Model\Order\Address::class, ['data' => $addressData]);
 $billingAddress->setAddressType('billing');
