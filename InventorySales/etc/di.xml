@@ -203,4 +203,6 @@
     <preference for="Magento\InventorySalesApi\Api\Data\IsProductSalableForRequestedQtyResultInterface" type="Magento\InventorySales\Model\IsProductSalableForRequestedQtyResult"/>
     <preference for="Magento\InventorySalesApi\Api\Data\IsProductSalableResultInterface" type="Magento\InventorySales\Model\IsProductSalableResult"/>
     <preference for="Magento\InventorySales\Model\ReservationExecutionInterface" type="Magento\InventorySales\Model\ReservationExecution"/>
+    <preference for="Magento\InventorySalesApi\Model\GetProductAvailableQtyBySkuListInterface" type="Magento\InventorySales\Model\ResourceModel\GetProductAvailableQtyBySkuList"/>
+    <preference for="Magento\InventorySalesApi\Model\GetProductAvailableQtyInterface" type="Magento\InventorySales\Model\ResourceModel\GetProductAvailableQty"/>
 </config>

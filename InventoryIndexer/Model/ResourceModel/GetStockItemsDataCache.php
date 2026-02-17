@@ -16,25 +16,15 @@ use Magento\InventoryIndexer\Model\GetStockItemData\CacheStorage;
 class GetStockItemsDataCache implements GetStockItemsDataInterface
 {
     /**
-     * @var GetStockItemsData
-     */
-    private GetStockItemsData $getStockItemsData;
-
-    /**
-     * @var CacheStorage
-     */
-    private mixed $cacheStorage;
-
-    /**
      * @param GetStockItemsData $getStockItemsData
      * @param CacheStorage $cacheStorage
+     * @param bool $isReadonly
      */
     public function __construct(
-        GetStockItemsData $getStockItemsData,
-        CacheStorage $cacheStorage
+        private readonly GetStockItemsData $getStockItemsData,
+        private readonly CacheStorage $cacheStorage,
+        private readonly bool $isReadonly = false
     ) {
-        $this->getStockItemsData = $getStockItemsData;
-        $this->cacheStorage = $cacheStorage;
     }
 
     /**
@@ -62,7 +52,7 @@ class GetStockItemsDataCache implements GetStockItemsDataInterface
             foreach ($fetchedItemsData as $sku => $stockItemData) {
                 $stockItemsData[$sku] = $stockItemData;
 
-                if ($stockItemData !== null) {
+                if ($stockItemData !== null && !$this->isReadonly) {
                     $this->cacheStorage->set($stockId, (string)$sku, $stockItemData);
                 }
             }
