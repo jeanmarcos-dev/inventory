@@ -177,6 +177,9 @@ class GetSalableQuantityInconsistenciesTest extends TestCase
     #[
         DataFixture(ProductFixture::class, ['sku' => 'simple']),
         DataFixture(
+            'Magento_InventoryReservationCli::Test/Integration/_files/delete_reservations.php'
+        ),
+        DataFixture(
             'Magento_InventoryReservationCli::Test/Integration/_files/create_incomplete_orders_with_reservations.php'
         ),
     ]
