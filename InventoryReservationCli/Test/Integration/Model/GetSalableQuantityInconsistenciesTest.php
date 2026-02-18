@@ -175,10 +175,11 @@ class GetSalableQuantityInconsistenciesTest extends TestCase
      * Test inventory:reservations:list-inconsistencies will return correct result use pagination
      */
     #[
-        DataFixture(ProductFixture::class, ['sku' => 'simple']),
+        DbIsolation(false),
         DataFixture(
             'Magento_InventoryReservationCli::Test/Integration/_files/delete_reservations.php'
         ),
+        DataFixture(ProductFixture::class, ['sku' => 'simple']),
         DataFixture(
             'Magento_InventoryReservationCli::Test/Integration/_files/create_incomplete_orders_with_reservations.php'
         ),
