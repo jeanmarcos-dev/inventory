@@ -8,17 +8,17 @@ declare(strict_types=1);
 namespace Magento\Inventory\Model;
 
 use Magento\Inventory\Model\IsProductAssignedToStock\CacheStorage;
-use Magento\Inventory\Model\ResourceModel\IsProductAssignedToStockBySkuList;
-use Magento\InventoryApi\Model\IsProductAssignedToStockBySkuListInterface;
+use Magento\Inventory\Model\ResourceModel\AreProductsAssignedToStock;
+use Magento\InventoryApi\Model\AreProductsAssignedToStockInterface;
 
-class IsProductAssignedToStockBySkuListCache implements IsProductAssignedToStockBySkuListInterface
+class AreProductsAssignedToStockCache implements AreProductsAssignedToStockInterface
 {
     /**
-     * @param IsProductAssignedToStockBySkuList $isProductAssignedToStockBySkuList
+     * @param AreProductsAssignedToStock $areProductsAssignedToStock
      * @param CacheStorage $isProductAssignedToStockCacheStorage
      */
     public function __construct(
-        private readonly IsProductAssignedToStockBySkuList $isProductAssignedToStockBySkuList,
+        private readonly AreProductsAssignedToStock $areProductsAssignedToStock,
         private readonly CacheStorage $isProductAssignedToStockCacheStorage
     ) {
     }
@@ -38,7 +38,7 @@ class IsProductAssignedToStockBySkuListCache implements IsProductAssignedToStock
             }
         }
         if (!empty($skusToLoad)) {
-            foreach ($this->isProductAssignedToStockBySkuList->execute($skusToLoad, $stockId) as $sku => $value) {
+            foreach ($this->areProductsAssignedToStock->execute($skusToLoad, $stockId) as $sku => $value) {
                 $result[$sku] = $value;
                 $this->isProductAssignedToStockCacheStorage->set((string) $sku, $stockId, $value);
             }

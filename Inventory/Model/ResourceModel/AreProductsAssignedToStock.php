@@ -7,10 +7,10 @@ declare(strict_types=1);
 
 namespace Magento\Inventory\Model\ResourceModel;
 
-use Magento\InventoryApi\Model\IsProductAssignedToStockBySkuListInterface;
+use Magento\InventoryApi\Model\AreProductsAssignedToStockInterface;
 use Magento\Framework\App\ResourceConnection;
 
-class IsProductAssignedToStockBySkuList implements IsProductAssignedToStockBySkuListInterface
+class AreProductsAssignedToStock implements AreProductsAssignedToStockInterface
 {
     /**
      * @param ResourceConnection $resourceConnection

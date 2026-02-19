@@ -17,7 +17,7 @@
             <argument name="pool" xsi:type="array">
                 <item name="preload_reservations_quantity" xsi:type="object">Magento\InventorySales\Model\PreloadReservationsQuantityDataBySkuList</item>
                 <item name="preload_product_available_qty" xsi:type="object">Magento\InventorySales\Model\PreloadProductAvailableQtyDataBySkuList</item>
-                <item name="preload_is_product_assigned_to_stock" xsi:type="object">Magento\InventorySales\Model\PreloadIsProductAssignedToStockDataBySkuList</item>
+                <item name="preload_product_assigned_to_stock" xsi:type="object">Magento\InventorySales\Model\PreloadProductAssignedToStockDataBySkuList</item>
             </argument>
         </arguments>
     </type>

@@ -18,8 +18,8 @@ interface GetProductAvailableQtyBySkuListInterface
      *
      * @param string[] $skus
      * @param int $stockId
-     * @return array An associative array where the keys are SKUs and the values are the available quantities.
-     * If there are no sources linked to the stock with the provided SKU
+     * @return array<string, float|null> An associative array where the keys are SKUs and the values are
+     * the available quantities. If there are no sources linked to the stock with the provided SKU
      * or all sources linked to the stock with the provided SKU are disabled, the value will be NULL.
      */
     public function execute(array $skus, int $stockId): array;

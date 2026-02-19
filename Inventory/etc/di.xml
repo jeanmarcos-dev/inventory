@@ -91,7 +91,7 @@
         </arguments>
     </type>
     <preference for="Magento\InventoryApi\Model\IsProductAssignedToStockInterface" type="Magento\Inventory\Model\IsProductAssignedToStockCache"/>
-    <preference for="Magento\InventoryApi\Model\IsProductAssignedToStockBySkuListInterface" type="Magento\Inventory\Model\ResourceModel\IsProductAssignedToStockBySkuList"/>
+    <preference for="Magento\InventoryApi\Model\AreProductsAssignedToStockInterface" type="Magento\Inventory\Model\ResourceModel\AreProductsAssignedToStock"/>
     <type name="Magento\Setup\Fixtures\FixtureRegistry">
         <arguments>
             <argument name="fixtures" xsi:type="array">

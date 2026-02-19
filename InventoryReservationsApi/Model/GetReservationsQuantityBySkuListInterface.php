@@ -18,8 +18,8 @@ interface GetReservationsQuantityBySkuListInterface
      *
      * @param string[] $skus
      * @param int $stockId
-     * @return array An associative array where the keys are SKUs and the values are the total quantity of reservations
-     * for that SKU in the given stock.
+     * @return array<string, float> An associative array where the keys are SKUs and the values are
+     * the total quantity of reservations for that SKU in the given stock.
      */
     public function execute(array $skus, int $stockId): array;
 }
