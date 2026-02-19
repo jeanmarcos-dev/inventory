@@ -7,12 +7,12 @@ declare(strict_types=1);
 
 namespace Magento\InventoryCatalog\Plugin\CatalogInventory\Model\Stock\StockItemRepository;
 
-use Magento\InventoryCatalogApi\Model\GetSkusByProductIdsInterface;
 use Magento\Catalog\Model\Indexer\Product\Full as FullProductIndexer;
 use Magento\CatalogInventory\Api\Data\StockItemInterface;
 use Magento\CatalogInventory\Model\Stock\StockItemRepository;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Inventory\Model\SourceItem\Command\GetSourceItemsBySku;
+use Magento\InventoryCatalogApi\Model\GetSkusByProductIdsInterface;
 use Magento\InventoryIndexer\Indexer\InventoryIndexer;
 
 class StockItemRepositoryPlugin
@@ -21,14 +21,14 @@ class StockItemRepositoryPlugin
     /**
      * @param FullProductIndexer $fullProductIndexer
      * @param InventoryIndexer $inventoryIndexer
-     * @param GetSkusByProductIdsInterface $getSkusByProductIds;
+     * @param GetSkusByProductIdsInterface $getSkusByProductIds
      * @param GetSourceItemsBySku $getSourceItemsBySku
      */
     public function __construct(
-        private FullProductIndexer $fullProductIndexer,
-        private InventoryIndexer $inventoryIndexer,
-        private GetSkusByProductIdsInterface $getSkusByProductIds,
-        private getSourceItemsBySku $getSourceItemsBySku
+        private readonly FullProductIndexer $fullProductIndexer,
+        private readonly InventoryIndexer $inventoryIndexer,
+        private readonly GetSkusByProductIdsInterface $getSkusByProductIds,
+        private readonly getSourceItemsBySku $getSourceItemsBySku
     ) {
     }
 
