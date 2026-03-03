@@ -8,28 +8,25 @@ declare(strict_types=1);
 namespace Magento\InventoryCatalog\Model;
 
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
-use Magento\CatalogInventory\Model\StockRegistryPreloader;
 use Magento\CatalogInventory\Model\StockRegistryStorage;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\InventoryApi\Model\CacheInterface;
 use Magento\InventoryCatalogApi\Model\GetProductIdsBySkusInterface;
 use Magento\InventoryConfiguration\Model\LegacyStockItem\CacheStorage;
-use Magento\InventorySalesApi\Model\PreloadDataBySkuListInterface;
 
 /**
- * Load legacy stock item data for given SKUs and stock id and save into cache storage.
+ * Synchronizes stock item data from the stock registry storage into the inventory cache storage.
  */
-class PreloadLegacyStockItemDataBySkuList implements PreloadDataBySkuListInterface
+class StockRegistryStockItemCache implements CacheInterface
 {
     /**
      * @param StockConfigurationInterface $stockConfiguration
-     * @param StockRegistryPreloader $stockRegistryPreloader
      * @param StockRegistryStorage $stockRegistryStorage
      * @param GetProductIdsBySkusInterface $getProductIdsBySkus
      * @param CacheStorage $cacheStorage
      */
     public function __construct(
         private readonly StockConfigurationInterface $stockConfiguration,
-        private readonly StockRegistryPreloader $stockRegistryPreloader,
         private readonly StockRegistryStorage $stockRegistryStorage,
         private readonly GetProductIdsBySkusInterface $getProductIdsBySkus,
         private readonly CacheStorage $cacheStorage
@@ -39,33 +36,36 @@ class PreloadLegacyStockItemDataBySkuList implements PreloadDataBySkuListInterfa
     /**
      * @inheritDoc
      */
-    public function execute(array $skus, int $stockId): void
+    public function warmup(array $skus, int $stockId): void
+    {
+        $skus = array_filter($skus, fn ($sku) => $this->cacheStorage->get((string) $sku) === null);
+        try {
+            $idsBySku = $this->getProductIdsBySkus->execute($skus);
+        } catch (NoSuchEntityException $skuNotFoundInCatalog) {
+            $idsBySku = [];
+        }
+        $scopeId = (int) $this->stockConfiguration->getDefaultScopeId();
+        foreach ($idsBySku as $sku => $productId) {
+            $item = $this->stockRegistryStorage->getStockItem((int) $productId, $scopeId);
+            if ($item) {
+                $this->cacheStorage->set((string) $sku, $item);
+            }
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function clean(array $skus, ?int $stockId): void
     {
         try {
             $idsBySku = $this->getProductIdsBySkus->execute($skus);
         } catch (NoSuchEntityException $skuNotFoundInCatalog) {
-            return;
+            $idsBySku = [];
         }
-        $skusById = array_flip($idsBySku);
         $scopeId = (int) $this->stockConfiguration->getDefaultScopeId();
-        $items = array_filter(
-            array_map(
-                fn ($id) => $this->stockRegistryStorage->getStockItem((int) $id, $scopeId),
-                $idsBySku
-            )
-        );
-        $idsToLoad = array_diff_key($idsBySku, $items);
-        if (!empty($idsToLoad)) {
-            $items = array_merge(
-                array_values($items),
-                array_values($this->stockRegistryPreloader->preloadStockItems($idsToLoad, $scopeId))
-            );
-        }
-        foreach ($items as $item) {
-            $productId = (int) $item->getProductId();
-            if (isset($skusById[$productId])) {
-                $this->cacheStorage->set((string) $skusById[$productId], $item);
-            }
+        foreach ($idsBySku as $id) {
+            $this->stockRegistryStorage->removeStockItem((int) $id, $scopeId);
         }
     }
 }

@@ -9,9 +9,9 @@ namespace Magento\InventoryReservations\Model;
 
 use Magento\InventoryReservations\Model\GetReservationsQuantity\CacheStorage;
 use Magento\InventoryReservations\Model\ResourceModel\GetReservationsQuantityBySkuList;
-use Magento\InventoryReservationsApi\Model\GetReservationsQuantityBySkuListCacheableInterface;
+use Magento\InventoryReservationsApi\Model\GetReservationsQuantityBySkuListCacheInterface;
 
-class GetReservationsQuantityBySkuListCache implements GetReservationsQuantityBySkuListCacheableInterface
+class GetReservationsQuantityBySkuListCache implements GetReservationsQuantityBySkuListCacheInterface
 {
     /**
      * @param GetReservationsQuantityBySkuList $getReservationsQuantityBySkuList
@@ -44,5 +44,23 @@ class GetReservationsQuantityBySkuListCache implements GetReservationsQuantityBy
             }
         }
         return $result;
+    }
+    
+    /**
+     * @inheritdoc
+     */
+    public function warmup(array $skus, int $stockId): void
+    {
+        $this->execute($skus, $stockId);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function clean(array $skus, ?int $stockId): void
+    {
+        foreach ($skus as $sku) {
+            $this->reservationsQuantityCacheStorage->delete((string)$sku, (int)$stockId);
+        }
     }
 }

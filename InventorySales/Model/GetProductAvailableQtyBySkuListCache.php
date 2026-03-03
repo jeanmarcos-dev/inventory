@@ -7,11 +7,12 @@ declare(strict_types=1);
 
 namespace Magento\InventorySales\Model;
 
+use Magento\InventoryApi\Model\CacheInterface;
 use Magento\InventorySales\Model\GetProductAvailableQty\CacheStorage;
 use Magento\InventorySales\Model\ResourceModel\GetProductAvailableQtyBySkuList;
 use Magento\InventorySalesApi\Model\GetProductAvailableQtyBySkuListInterface;
 
-class GetProductAvailableQtyBySkuListCache implements GetProductAvailableQtyBySkuListInterface
+class GetProductAvailableQtyBySkuListCache implements GetProductAvailableQtyBySkuListInterface, CacheInterface
 {
     /**
      * @param GetProductAvailableQtyBySkuList $getProductAvailableQtyBySkuList
@@ -44,5 +45,23 @@ class GetProductAvailableQtyBySkuListCache implements GetProductAvailableQtyBySk
             }
         }
         return $result;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function warmup(array $skus, int $stockId): void
+    {
+        $this->execute($skus, $stockId);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function clean(array $skus, ?int $stockId): void
+    {
+        foreach ($skus as $sku) {
+            $this->getProductAvailableQtyCacheStorage->delete((string)$sku, (int)$stockId);
+        }
     }
 }

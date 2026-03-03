@@ -10,8 +10,9 @@ namespace Magento\Inventory\Model;
 use Magento\Inventory\Model\IsProductAssignedToStock\CacheStorage;
 use Magento\Inventory\Model\ResourceModel\AreProductsAssignedToStock;
 use Magento\InventoryApi\Model\AreProductsAssignedToStockInterface;
+use Magento\InventoryApi\Model\CacheInterface;
 
-class AreProductsAssignedToStockCache implements AreProductsAssignedToStockInterface
+class AreProductsAssignedToStockCache implements AreProductsAssignedToStockInterface, CacheInterface
 {
     /**
      * @param AreProductsAssignedToStock $areProductsAssignedToStock
@@ -44,5 +45,23 @@ class AreProductsAssignedToStockCache implements AreProductsAssignedToStockInter
             }
         }
         return $result;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function warmup(array $skus, int $stockId): void
+    {
+        $this->execute($skus, $stockId);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function clean(array $skus, ?int $stockId): void
+    {
+        foreach ($skus as $sku) {
+            $this->isProductAssignedToStockCacheStorage->delete((string)$sku, (int)$stockId);
+        }
     }
 }

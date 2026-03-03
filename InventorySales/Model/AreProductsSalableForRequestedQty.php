@@ -7,10 +7,10 @@ declare(strict_types=1);
 
 namespace Magento\InventorySales\Model;
 
+use Magento\InventoryApi\Model\CacheInterface;
 use Magento\InventorySalesApi\Api\AreProductsSalableForRequestedQtyInterface;
 use Magento\InventorySalesApi\Api\Data\IsProductSalableForRequestedQtyResultInterfaceFactory;
 use Magento\InventorySalesApi\Api\IsProductSalableForRequestedQtyInterface;
-use Magento\InventorySalesApi\Model\PreloadDataBySkuListInterface;
 
 /**
  * @inheritDoc
@@ -20,13 +20,13 @@ class AreProductsSalableForRequestedQty implements AreProductsSalableForRequeste
     /**
      * @param IsProductSalableForRequestedQtyInterface $isProductSalableForRequestedQtyInterface
      * @param IsProductSalableForRequestedQtyResultInterfaceFactory $isProductSalableForRequestedQtyResultFactory
-     * @param PreloadDataBySkuListInterface $preloadDataBySkuList
+     * @param CacheInterface $cache
      */
     public function __construct(
         private readonly IsProductSalableForRequestedQtyInterface $isProductSalableForRequestedQtyInterface,
         private readonly IsProductSalableForRequestedQtyResultInterfaceFactory
         $isProductSalableForRequestedQtyResultFactory,
-        private readonly PreloadDataBySkuListInterface $preloadDataBySkuList
+        private readonly CacheInterface $cache
     ) {
     }
 
@@ -38,7 +38,7 @@ class AreProductsSalableForRequestedQty implements AreProductsSalableForRequeste
         int $stockId
     ): array {
         $results = [];
-        $this->preloadDataBySkuList->execute(
+        $this->cache->warmup(
             array_map(
                 static fn ($request) => $request->getSku(),
                 $skuRequests

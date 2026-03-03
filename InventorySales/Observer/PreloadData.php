@@ -12,7 +12,7 @@ use Magento\Catalog\Model\ResourceModel\Product\Collection;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\InventorySalesApi\Model\PreloadDataBySkuListInterface;
+use Magento\InventoryApi\Model\CacheInterface;
 use Magento\InventorySalesApi\Model\StockByWebsiteIdResolverInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -20,13 +20,13 @@ use Magento\Store\Model\StoreManagerInterface;
 class PreloadData implements ObserverInterface
 {
     /**
-     * @param PreloadDataBySkuListInterface $preloadDataBySkuList
+     * @param CacheInterface $cache
      * @param StoreManagerInterface $storeManager
      * @param StockByWebsiteIdResolverInterface $stockByWebsiteIdResolver
      * @param ScopeConfigInterface $scopeConfig
      */
     public function __construct(
-        private readonly PreloadDataBySkuListInterface $preloadDataBySkuList,
+        private readonly CacheInterface $cache,
         private readonly StoreManagerInterface $storeManager,
         private readonly StockByWebsiteIdResolverInterface $stockByWebsiteIdResolver,
         private readonly ScopeConfigInterface $scopeConfig
@@ -48,7 +48,7 @@ class PreloadData implements ObserverInterface
         )) {
             $websiteId = (int) $this->storeManager->getStore($storeId)->getWebsiteId();
             $stockId = $this->stockByWebsiteIdResolver->execute($websiteId)->getStockId();
-            $this->preloadDataBySkuList->execute($productCollection->getColumnValues('sku'), $stockId);
+            $this->cache->warmup($productCollection->getColumnValues('sku'), $stockId);
         }
     }
 }

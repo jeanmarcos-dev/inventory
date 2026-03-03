@@ -9,10 +9,15 @@ declare(strict_types=1);
 namespace Magento\InventorySales\Model;
 
 use Magento\Inventory\Model\AreProductsAssignedToStockCache;
+use Magento\InventoryApi\Model\CacheInterface;
 use Magento\InventoryCatalogApi\Api\DefaultStockProviderInterface;
-use Magento\InventorySalesApi\Model\PreloadDataBySkuListInterface;
 
-class PreloadProductAssignedToStockDataBySkuList implements PreloadDataBySkuListInterface
+/**
+ * This class is a wrapper for AreProductsAssignedToStockCache, which allows to skip warming data for default stock.
+ *
+ * @see \Magento\InventoryConfigurationApi\Api\GetStockItemConfigurationInterface::execute
+ */
+class AreProductsAssignedToStockCacheProxy implements CacheInterface
 {
     /**
      * @param AreProductsAssignedToStockCache $areProductsAssignedToStockCache
@@ -27,14 +32,18 @@ class PreloadProductAssignedToStockDataBySkuList implements PreloadDataBySkuList
     /**
      * @inheritDoc
      */
-    public function execute(array $skus, int $stockId): void
+    public function warmup(array $skus, int $stockId): void
     {
-        /**
-         * This data is loaded only for non-default stock
-         * @see \Magento\InventoryConfigurationApi\Api\GetStockItemConfigurationInterface::execute
-         */
         if ($stockId !== $this->defaultStockProvider->getId()) {
-            $this->areProductsAssignedToStockCache->execute($skus, $stockId);
+            $this->areProductsAssignedToStockCache->warmup($skus, $stockId);
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function clean(array $skus, ?int $stockId): void
+    {
+        $this->areProductsAssignedToStockCache->clean($skus, $stockId);
     }
 }

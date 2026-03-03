@@ -7,13 +7,14 @@ declare(strict_types=1);
 
 namespace Magento\InventoryIndexer\Model\ResourceModel;
 
+use Magento\InventoryApi\Model\CacheInterface;
 use Magento\InventorySalesApi\Model\GetStockItemsDataInterface;
 use Magento\InventoryIndexer\Model\GetStockItemData\CacheStorage;
 
 /**
  * @inheritdoc
  */
-class GetStockItemsDataCache implements GetStockItemsDataInterface
+class GetStockItemsDataCache implements GetStockItemsDataInterface, CacheInterface
 {
     /**
      * @param GetStockItemsData $getStockItemsData
@@ -59,5 +60,31 @@ class GetStockItemsDataCache implements GetStockItemsDataInterface
         }
 
         return $stockItemsData;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function warmup(array $skus, int $stockId): void
+    {
+        $data = $this->execute($skus, $stockId);
+        if ($this->isReadonly) {
+            // In readonly mode, the execute method will not cache the data, so we need to cache it here
+            foreach ($data as $sku => $stockItemData) {
+                if ($stockItemData !== null) {
+                    $this->cacheStorage->set($stockId, (string)$sku, $stockItemData);
+                }
+            }
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function clean(array $skus, ?int $stockId): void
+    {
+        foreach ($skus as $sku) {
+            $this->cacheStorage->delete((string)$sku, $stockId);
+        }
     }
 }
