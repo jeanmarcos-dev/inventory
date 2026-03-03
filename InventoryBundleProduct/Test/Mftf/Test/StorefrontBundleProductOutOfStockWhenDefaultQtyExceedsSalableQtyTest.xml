@@ -89,7 +89,6 @@
             <waitForText selector="{{AdminProductGridSection.productSalableQty('1', 'Default Stock')}}" userInput="199" stepKey="assertSimple2SalableQtyAfterOrder"/>
             <!-- Create bundle product with two radio options -->
             <createData entity="ApiBundleProductShipmentTypeSeparately" stepKey="bundleProduct">
-                <requiredEntity createDataKey="category"/>
                 <field key="sku">bp1</field>
                 <field key="name">bp1</field>
             </createData>
@@ -123,7 +122,6 @@
             <deleteData createDataKey="bundleProduct" stepKey="deleteBundle"/>
             <deleteData createDataKey="simple1" stepKey="deleteSimple1"/>
             <deleteData createDataKey="simple2" stepKey="deleteSimple2"/>
-            <deleteData createDataKey="category" stepKey="deleteCategory"/>
             <deleteData createDataKey="customer" stepKey="deleteCustomer"/>
             <actionGroup ref="DisableSourceActionGroup" stepKey="disableAdditionalSource">
                 <argument name="sourceCode" value="$$additionalSource.source[source_code]$$"/>
