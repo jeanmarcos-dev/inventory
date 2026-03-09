@@ -118,6 +118,9 @@
             </createData>
         </before>
         <after>
+            <!-- Reset product grid filter applied in before block -->
+            <actionGroup ref="AdminOpenProductIndexPageActionGroup" stepKey="openProductIndexPage"/>
+            <actionGroup ref="ClearFiltersAdminDataGridActionGroup" stepKey="resetProductGridFilter"/>
             <!-- Delete created data -->
             <deleteData createDataKey="bundleProduct" stepKey="deleteBundle"/>
             <deleteData createDataKey="simple1" stepKey="deleteSimple1"/>
@@ -134,9 +137,10 @@
             <argument name="productUrl" value="$$bundleProduct.custom_attributes[url_key]$$"/>
         </actionGroup>
         <!-- Product must be marked out of stock  -->
+        <waitForElementVisible selector="{{StorefrontProductInfoMainSection.productStockStatus}}" stepKey="waitForStockStatus"/>
         <grabTextFrom selector="{{StorefrontProductInfoMainSection.productStockStatus}}" stepKey="grabStockStatus"/>
         <assertEquals stepKey="assertProductOutOfStock">
-            <expectedResult type="string">OUT OF STOCK</expectedResult>
+            <expectedResult type="string">{{SourceStatusOutOfStock.storefront_display}}</expectedResult>
             <actualResult type="variable">grabStockStatus</actualResult>
         </assertEquals>
         <waitForElementNotVisible selector="{{StorefrontProductActionSection.addToCart}}" stepKey="assertAddToCartNotPresent"/>
