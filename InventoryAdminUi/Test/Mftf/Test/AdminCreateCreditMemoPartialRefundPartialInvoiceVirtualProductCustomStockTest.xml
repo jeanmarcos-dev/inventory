@@ -46,6 +46,8 @@
                 <argument name="websiteName" value="{{_defaultWebsite.name}}"/>
             </actionGroup>
             <deleteData createDataKey="stock" stepKey="deleteStock"/>
+            <amOnPage url="{{AdminOrdersPage.url.url}}" stepKey="openOrdersGrid"/>
+            <actionGroup ref="ClearFiltersAdminDataGridActionGroup" stepKey="clearOrdersFilter"/>
             <actionGroup ref="AdminLogoutActionGroup" stepKey="logoutOfAdmin"/>
             <actionGroup ref="CliIndexerReindexActionGroup" stepKey="reindex">
                 <argument name="indices" value=""/>
