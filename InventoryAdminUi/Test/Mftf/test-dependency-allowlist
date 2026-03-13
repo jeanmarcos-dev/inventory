@@ -59,5 +59,6 @@ StorefrontQuickOrderAddProductToCart
 GenerateConfigurationsByAttributeCodeActionGroup
 SingleShippingSection
 BillingAgreement
-AdminLeftNavigationMenuSubtitlesVisibleCeTest
+AdminLeftNavigationMenuSubTitlesVisibleTest
 AdminMenuSection
+NewProduct

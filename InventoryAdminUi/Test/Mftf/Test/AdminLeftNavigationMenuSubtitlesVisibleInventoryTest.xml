@@ -7,7 +7,7 @@
 -->
 <tests xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/testSchema.xsd">
-    <test name="AdminLeftNavigationMenuSubtitlesVisibleInventoryTest" extends="AdminLeftNavigationMenuSubtitlesVisibleCeTest">
+    <test name="AdminLeftNavigationMenuSubtitlesVisibleInventoryTest" extends="AdminLeftNavigationMenuSubTitlesVisibleTest">
         <annotations>
             <features value="InventoryAdminUi"/>
             <stories value="Admin left navigation menu in Inventory"/>
@@ -19,5 +19,6 @@
         </annotations>
         <!-- Inventory (MSI): verify in stores inventory subtitle visible -->
         <waitForElementVisible selector="{{AdminMenuSection.submenuGroupTitle('magento-inventoryadminui-inventory')}}" stepKey="waitForStoresInventorySubtitleVisible" after="waitForStoresTaxesSubtitleVisible"/>
+        <waitForElementVisible selector="{{AdminMenuSection.storesInventory}}" stepKey="waitForStoresInventorySubtitle" after="waitForStoresInventorySubtitleVisible"/>
     </test>
 </tests>
