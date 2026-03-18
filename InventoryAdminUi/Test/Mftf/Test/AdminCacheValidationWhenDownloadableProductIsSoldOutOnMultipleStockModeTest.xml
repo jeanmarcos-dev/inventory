@@ -48,8 +48,7 @@
                 <argument name="stockName" value="{{_defaultStock.name}}"/>
                 <argument name="websiteName" value="{{_defaultWebsite.name}}"/>
             </actionGroup>
-            <amOnPage url="{{AdminOrdersPage.url.url}}" stepKey="openOrdersGrid"/>
-            <actionGroup ref="ClearFiltersAdminDataGridActionGroup" stepKey="clearOrdersFilter"/>
+            <actionGroup ref="AdminOrdersGridClearFiltersActionGroup" stepKey="clearOrdersFilters"/>
             <comment userInput="BIC workaround" stepKey="assignDefaultStockToMainWebsiteComment"/>
             <comment userInput="BIC workaround" stepKey="navigateToStockListPage"/>
             <comment userInput="BIC workaround" stepKey="waitForStockListPageLoad"/>
