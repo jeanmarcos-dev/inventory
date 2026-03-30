@@ -122,7 +122,7 @@ class CartManagementPlugin
 
         try {
             foreach ($skus as $sku) {
-                if (!$this->acquireInventoryLock->execute($sku, $stockId)) {
+                if (!$this->acquireInventoryLock->execute((string) $sku, $stockId)) {
                     throw new LocalizedException(
                         __('Could not acquire inventory lock for SKU: %1. Please try again.', $sku)
                     );
@@ -133,7 +133,7 @@ class CartManagementPlugin
             return $proceed($cartId, $paymentMethod);
         } finally {
             foreach (array_keys($locksAcquired) as $sku) {
-                $this->acquireInventoryLock->release($sku, $stockId);
+                $this->acquireInventoryLock->release((string) $sku, $stockId);
             }
         }
     }
