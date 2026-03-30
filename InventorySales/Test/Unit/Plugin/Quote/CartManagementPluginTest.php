@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Magento\InventorySales\Test\Unit\Plugin\Quote;
 
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\InventoryApi\Api\Data\StockInterface;
 use Magento\InventoryCatalogApi\Model\GetSkusByProductIdsInterface;
 use Magento\InventorySales\Model\ReservationExecutionInterface;
 use Magento\InventorySales\Model\ResourceModel\AcquireInventoryLock;
@@ -15,8 +16,7 @@ use Magento\InventorySales\Plugin\Quote\CartManagementPlugin;
 use Magento\InventorySalesApi\Model\StockByWebsiteIdResolverInterface;
 use Magento\Quote\Api\CartManagementInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Api\Data\CartInterface;
-use Magento\Quote\Api\Data\CartItemInterface;
+use Magento\Quote\Model\Quote;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -84,17 +84,19 @@ class CartManagementPluginTest extends TestCase
         $expectedOrderId = 1001;
 
         $subject = $this->createMock(CartManagementInterface::class);
-        $quote = $this->createConfiguredMock(CartInterface::class, ['getStoreId' => 1]);
-        $item = $this->createConfiguredMock(CartItemInterface::class, ['getProductId' => 42]);
+        
+        $quote = $this->createMock(Quote::class);
+        $quote->method('getStoreId')->willReturn(1);
+        $item = new class {
+            public function getProductId(): int
+            {
+                return 42;
+            }
+        };
         $quote->method('getAllVisibleItems')->willReturn([$item]);
 
         $store = $this->createConfiguredMock(StoreInterface::class, ['getWebsiteId' => 2]);
-        $stock = new class {
-            public function getStockId(): int
-            {
-                return 3;
-            }
-        };
+        $stock = $this->createConfiguredMock(StockInterface::class, ['getStockId' => 3]);
 
         $this->reservationExecution->method('isDeferred')->willReturn(true);
         $this->cartRepository->expects($this->once())
