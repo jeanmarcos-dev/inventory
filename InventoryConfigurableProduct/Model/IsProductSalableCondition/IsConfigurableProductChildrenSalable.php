@@ -111,9 +111,10 @@ class IsConfigurableProductChildrenSalable
             return false;
         }
 
-        $results = $this->areProductsSalable->execute($candidateSkus, $stockId);
-        foreach ($results as $result) {
-            if ($result->isSalable()) {
+        foreach ($candidateSkus as $candidateSku) {
+            $results = $this->areProductsSalable->execute([$candidateSku], $stockId);
+            $result = reset($results);
+            if ($result && $result->isSalable()) {
                 return true;
             }
         }
@@ -129,21 +130,25 @@ class IsConfigurableProductChildrenSalable
      * iterating through all children individually. The returned candidates are then
      * validated through the full salability condition chain via areProductsSalable.
      *
-     * @param array $skus
+     * @param string[] $skus
      * @param int $stockId
-     * @return array
+     * @return string[]
      */
     private function getSalableCandidatesFromIndex(array $skus, int $stockId): array
     {
-        $connection = $this->resource->getConnection();
-        $select = $connection->select()
-            ->from(
-                $this->stockIndexTableNameResolver->execute($stockId),
-                [IndexStructure::SKU]
-            )
-            ->where(IndexStructure::SKU . ' IN (?)', array_values($skus))
-            ->where(IndexStructure::IS_SALABLE . ' = ?', 1);
+        try {
+            $connection = $this->resource->getConnection();
+            $select = $connection->select()
+                ->from(
+                    $this->stockIndexTableNameResolver->execute($stockId),
+                    [IndexStructure::SKU]
+                )
+                ->where(IndexStructure::SKU . ' IN (?)', array_values($skus))
+                ->where(IndexStructure::IS_SALABLE . ' = ?', 1);
 
-        return $connection->fetchCol($select);
+            return $connection->fetchCol($select);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 }

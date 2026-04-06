@@ -169,14 +169,39 @@ class IsConfigurableProductChildrenSalableTest extends TestCase
 
         $result1 = $this->createSalableResult('simple_10', false);
         $result2 = $this->createSalableResult('simple_20', false);
-        $this->areProductsSalableMock->expects($this->once())
+        $this->areProductsSalableMock->expects($this->exactly(2))
             ->method('execute')
-            ->with(['simple_10', 'simple_20'], 1)
-            ->willReturn([$result1, $result2]);
+            ->willReturnMap([
+                [['simple_10'], 1, [$result1]],
+                [['simple_20'], 1, [$result2]],
+            ]);
 
         $result = $this->model->execute('configurable-sku', 1);
 
         self::assertFalse($result);
+    }
+
+    public function testEarlyExitOnFirstConfirmedSalable(): void
+    {
+        $this->setupConfigurableProduct('configurable-sku', 100, [10 => 10, 20 => 20]);
+        $this->getSkusByProductIdsMock->method('execute')
+            ->willReturn([10 => 'simple_10', 20 => 'simple_20']);
+
+        $this->stockIndexTableNameResolverMock->method('execute')
+            ->willReturn('inventory_stock_1');
+        $this->connectionMock->method('fetchCol')
+            ->willReturn(['simple_10', 'simple_20']);
+
+        $salableResult = $this->createSalableResult('simple_10', true);
+        // Only called once — early exit after first salable candidate confirmed
+        $this->areProductsSalableMock->expects($this->once())
+            ->method('execute')
+            ->with(['simple_10'], 1)
+            ->willReturn([$salableResult]);
+
+        $result = $this->model->execute('configurable-sku', 1);
+
+        self::assertTrue($result);
     }
 
     public function testOnlySalableCandidatesPassedToAreProductsSalable(): void
@@ -198,12 +223,12 @@ class IsConfigurableProductChildrenSalableTest extends TestCase
         $this->connectionMock->method('fetchCol')
             ->willReturn(['child_50', 'child_75']);
 
-        $result1 = $this->createSalableResult('child_50', true);
-        $result2 = $this->createSalableResult('child_75', true);
+        $salableResult = $this->createSalableResult('child_50', true);
+        // Early exit: only first candidate checked, second never reached
         $this->areProductsSalableMock->expects($this->once())
             ->method('execute')
-            ->with(['child_50', 'child_75'], 1)
-            ->willReturn([$result1, $result2]);
+            ->with(['child_50'], 1)
+            ->willReturn([$salableResult]);
 
         $result = $this->model->execute('configurable-sku', 1);
 
@@ -232,6 +257,24 @@ class IsConfigurableProductChildrenSalableTest extends TestCase
         $result = $this->model->execute('configurable-sku', 20);
 
         self::assertTrue($result);
+    }
+
+    public function testGracefulDegradationOnIndexQueryFailure(): void
+    {
+        $this->setupConfigurableProduct('configurable-sku', 100, [10 => 10]);
+        $this->getSkusByProductIdsMock->method('execute')
+            ->willReturn([10 => 'simple_10']);
+
+        $this->stockIndexTableNameResolverMock->method('execute')
+            ->willReturn('inventory_stock_1');
+        $this->connectionMock->method('fetchCol')
+            ->willThrowException(new \Exception('Table does not exist'));
+
+        $this->areProductsSalableMock->expects($this->never())->method('execute');
+
+        $result = $this->model->execute('configurable-sku', 1);
+
+        self::assertFalse($result);
     }
 
     /**
