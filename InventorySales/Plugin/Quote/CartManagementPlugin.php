@@ -99,7 +99,12 @@ class CartManagementPlugin
             return $proceed($cartId, $paymentMethod);
         }
 
-        $quote = $this->cartRepository->getActive($cartId);
+        try {
+            $quote = $this->cartRepository->getActive($cartId);
+        } catch (NoSuchEntityException $exception) {
+            // Async order processing can work with an inactive quote after checkout message submission.
+            $quote = $this->cartRepository->get($cartId);
+        }
         $websiteId = (int)$this->storeManager->getStore($quote->getStoreId())->getWebsiteId();
         $stockId = (int)$this->stockByWebsiteIdResolver->execute($websiteId)->getStockId();
 
@@ -117,7 +122,7 @@ class CartManagementPlugin
 
         try {
             foreach ($skus as $sku) {
-                if (!$this->acquireInventoryLock->execute($sku, $stockId)) {
+                if (!$this->acquireInventoryLock->execute((string) $sku, $stockId)) {
                     throw new LocalizedException(
                         __('Could not acquire inventory lock for SKU: %1. Please try again.', $sku)
                     );
@@ -128,7 +133,7 @@ class CartManagementPlugin
             return $proceed($cartId, $paymentMethod);
         } finally {
             foreach (array_keys($locksAcquired) as $sku) {
-                $this->acquireInventoryLock->release($sku, $stockId);
+                $this->acquireInventoryLock->release((string) $sku, $stockId);
             }
         }
     }
