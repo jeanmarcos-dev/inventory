@@ -5,7 +5,7 @@
  */
 declare(strict_types=1);
 
-namespace Magento\GraphQl\Inventory;
+namespace Magento\InventoryGraphQl\Test\Api\GraphQl;
 
 use Magento\Bundle\Test\Fixture\AddProductToCart as AddBundleProductToCart;
 use Magento\Bundle\Test\Fixture\Link as BundleSelectionFixture;
@@ -47,7 +47,7 @@ class BundleProductStockStatusTest extends GraphQlAbstract
     private $fixtures;
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     protected function setUp(): void
     {
