@@ -33,6 +33,10 @@ use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
 
 /**
+ * Integration tests for salable quantity inconsistencies CLI logic (many fixtures only for #[DataFixture] wiring).
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ *
  * @see https://app.hiptest.com/projects/69435/test-plan/folders/909285/scenarios/3026032
  * @see https://app.hiptest.com/projects/69435/test-plan/folders/888618/scenarios/3027875
  * @see https://app.hiptest.com/projects/69435/test-plan/folders/888618/scenarios/3027429
