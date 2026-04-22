@@ -160,10 +160,11 @@ class GetBackorder
                     $result->setMessage($error->getMessage());
                 }
             }
-            $backorderQty = $this->getBackorderQty->execute($productSku, (int)$stockId, $qty);
-            if ($backorderQty > 0) {
-                $result->setItemBackorders($backorderQty);
-            }
+        }
+
+        $backorderQty = $this->getBackorderQty->execute($productSku, (int)$stockId, $qty);
+        if ($backorderQty > 0) {
+            $result->setItemBackorders($backorderQty);
         }
 
         return $result;
