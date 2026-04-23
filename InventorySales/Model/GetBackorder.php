@@ -163,12 +163,11 @@ class GetBackorder
             }
         }
 
-        $backorderQty = 0.0;
+        $backorderQty = 0;
         try {
             $backorderQty = $this->getBackorderQty->execute($productSku, (int)$stockId, $qty);
+            // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock.DetectedCatch
         } catch (SkuIsNotAssignedToStockException $exception) {
-            // No inventory assignment for this SKU on the stock: salability above already may set errors;
-            // backorder quantity is not computable; leave ItemBackorders unset.
         }
         if ($backorderQty > 0) {
             $result->setItemBackorders($backorderQty);
