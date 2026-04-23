@@ -14,6 +14,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Locale\FormatInterface;
 use Magento\InventoryCatalogApi\Model\GetSkusByProductIdsInterface;
+use Magento\InventoryConfigurationApi\Exception\SkuIsNotAssignedToStockException;
 use Magento\InventorySales\Model\IsProductSalableCondition\BackOrderNotifyCustomerCondition;
 use Magento\InventorySales\Model\IsProductSalableForRequestedQtyCondition\ProductSalabilityError;
 use Magento\InventorySalesApi\Api\AreProductsSalableForRequestedQtyInterface;
@@ -162,7 +163,13 @@ class GetBackorder
             }
         }
 
-        $backorderQty = $this->getBackorderQty->execute($productSku, (int)$stockId, $qty);
+        $backorderQty = 0.0;
+        try {
+            $backorderQty = $this->getBackorderQty->execute($productSku, (int)$stockId, $qty);
+        } catch (SkuIsNotAssignedToStockException $exception) {
+            // No inventory assignment for this SKU on the stock: salability above already may set errors;
+            // backorder quantity is not computable; leave ItemBackorders unset.
+        }
         if ($backorderQty > 0) {
             $result->setItemBackorders($backorderQty);
         }
