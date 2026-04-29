@@ -157,6 +157,11 @@
         </arguments>
     </type>
 
+    <type name="Magento\CatalogInventory\Model\Stock\StockItemRepository">
+        <plugin name="reindex_composite_products_after_save_product_stock_item"
+                type="Magento\InventoryCatalog\Plugin\CatalogInventory\Model\Stock\StockItemRepository\ReindexCompositeProductsOnLegacyStockItemSavePlugin"/>
+    </type>
+
     <!-- Negative Min Quantity Threshold for Backorders -->
     <type name="Magento\Catalog\Controller\Adminhtml\Product\Initialization\StockDataFilter">
         <plugin name="allow_negative_min_qty"
