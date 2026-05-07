@@ -7,9 +7,7 @@ declare(strict_types=1);
 
 namespace Magento\InventoryIndexer\Indexer\Stock;
 
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\Exception\StateException;
 use Magento\InventoryCatalogApi\Api\DefaultStockProviderInterface;
 use Magento\InventoryIndexer\Indexer\InventoryIndexer;
 use Magento\InventoryIndexer\Indexer\SourceItem\CompositeProductProcessorInterface as ProductProcessor;
@@ -26,18 +24,12 @@ class SkuListsProcessor
     private string $connectionName = ResourceConnection::DEFAULT_CONNECTION;
 
     /**
-     * @var ResourceConnection
-     */
-    private ResourceConnection $resourceConnection;
-
-    /**
      * @param GetSalableStatuses $getSalableStatuses
      * @param DefaultStockProviderInterface $defaultStockProvider
      * @param IndexNameBuilder $indexNameBuilder
      * @param IndexStructureInterface $indexStructure
      * @param IndexDataFiller $indexDataFiller
      * @param ProductProcessor[] $saleabilityChangesProcessorsPool
-     * @param ResourceConnection|null $resourceConnection
      */
     public function __construct(
         private readonly GetSalableStatuses $getSalableStatuses,
@@ -46,11 +38,7 @@ class SkuListsProcessor
         private readonly IndexStructureInterface $indexStructure,
         private readonly IndexDataFiller $indexDataFiller,
         private array $saleabilityChangesProcessorsPool = [],
-        ?ResourceConnection $resourceConnection = null
     ) {
-        $this->resourceConnection = $resourceConnection
-            ?? ObjectManager::getInstance()->get(ResourceConnection::class);
-
         // Sort processors by sort order
         uasort(
             $this->saleabilityChangesProcessorsPool,
@@ -63,7 +51,6 @@ class SkuListsProcessor
      *
      * @param SkuListInStock[] $skuListInStockList
      * @return void
-     * @throws StateException
      */
     public function reindexList(array $skuListInStockList): void
     {
@@ -81,9 +68,6 @@ class SkuListsProcessor
                 ->setAlias(IndexAlias::MAIN->value)
                 ->build();
             if (!$this->indexStructure->isExist($mainIndexName, $this->connectionName)) {
-                if ($this->resourceConnection->getConnection($this->connectionName)->getTransactionLevel() > 0) {
-                    continue;
-                }
                 $this->indexStructure->create($mainIndexName, $this->connectionName);
             }
             $this->indexDataFiller->fillIndex($mainIndexName, $skuListInStock, $this->connectionName);
