@@ -35,7 +35,8 @@
                 <argument name="websiteName" value="{{_defaultWebsite.name}}"/>
             </actionGroup>
             <deleteData createDataKey="additionalStock" after="logoutOfAdmin" stepKey="deleteStock"/>
-        </after>
+                <actionGroup ref="AdminOrdersGridClearFiltersActionGroup" stepKey="clearOrdersGridFilters"/>
+</after>
 
         <!--Assign virtual product to additional source.-->
         <actionGroup ref="AssignSourceToProductActionGroup" stepKey="assignTestSourceToCreatedProduct" after="openVirtualProductPage">

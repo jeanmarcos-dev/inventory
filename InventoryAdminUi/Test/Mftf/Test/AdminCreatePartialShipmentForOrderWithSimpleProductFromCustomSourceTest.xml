@@ -86,7 +86,8 @@
             <deleteData createDataKey="createCategory" stepKey="deleteCategory"/>
             <!-- Delete all products via API -->
             <helper class="Magento\Catalog\Test\Mftf\Helper\ProductApiHelper" method="deleteAllProductsApi" stepKey="deleteAllProductsViaApi"/>
-        </after>
+                <actionGroup ref="AdminOrdersGridClearFiltersActionGroup" stepKey="clearOrdersGridFilters"/>
+</after>
 
         <!-- Login as Customer and add Product to Cart-->
         <actionGroup ref="LoginToStorefrontActionGroup" stepKey="customerLogin">

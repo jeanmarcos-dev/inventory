@@ -102,7 +102,13 @@
             <actionGroup ref="StorefrontCustomerLogoutActionGroup" stepKey="logoutCustomer" />
             <deleteData createDataKey="createCustomer" stepKey="deleteCustomer"/>
             <deleteData createDataKey="createCategory" stepKey="deleteCategory"/>
-        </after>
+                <amOnPage url="{{AdminManageStockPage.url}}" stepKey="goToInventoryStockGridToClearFilters"/>
+        <waitForPageLoad stepKey="waitForInventoryStockGridToLoad"/>
+        <conditionalClick selector="{{AdminDataGridHeaderSection.clearFilters}}" dependentSelector="{{AdminDataGridHeaderSection.clearFilters}}" visible="true" stepKey="clearInventoryStockGridFilters"/>
+        <waitForPageLoad stepKey="waitAfterClearInventoryStockFilters"/>
+        <actionGroup ref="NavigateToAndResetProductGridToDefaultViewActionGroup" stepKey="clearProductGridFilters"/>
+        <actionGroup ref="AdminOrdersGridClearFiltersActionGroup" stepKey="clearOrdersGridFilters"/>
+</after>
 
         <!-- Login as Customer and add Product to Cart-->
         <actionGroup ref="LoginToStorefrontActionGroup" stepKey="customerLogin">

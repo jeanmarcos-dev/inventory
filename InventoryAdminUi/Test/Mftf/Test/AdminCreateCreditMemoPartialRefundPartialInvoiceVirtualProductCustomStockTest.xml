@@ -51,7 +51,8 @@
             <actionGroup ref="CliIndexerReindexActionGroup" stepKey="reindex">
                 <argument name="indices" value=""/>
             </actionGroup>
-        </after>
+                <actionGroup ref="NavigateToAndResetProductGridToDefaultViewActionGroup" stepKey="clearProductGridFilters"/>
+</after>
 
         <!--Login To storefront as Customer-->
         <actionGroup ref="LoginToStorefrontActionGroup" stepKey="loginToStorefront">

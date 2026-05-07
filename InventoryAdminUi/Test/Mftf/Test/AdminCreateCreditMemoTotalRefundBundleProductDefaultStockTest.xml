@@ -32,7 +32,8 @@
         <after>
             <remove keyForRemoval="assignMainWebsiteToDefaultStock"/>
             <remove keyForRemoval="deleteStock"/>
-        </after>
+                <actionGroup ref="AdminOrdersGridClearFiltersActionGroup" stepKey="clearOrdersGridFilters"/>
+</after>
 
         <!--Set 'Default' Source quantity.-->
         <remove keyForRemoval="assignTestSourceToCreatedProduct"/>
