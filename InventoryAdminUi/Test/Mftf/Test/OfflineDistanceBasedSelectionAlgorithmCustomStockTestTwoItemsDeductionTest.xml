@@ -188,6 +188,8 @@
         <waitForText userInput="Processing" selector="{{AdminOrderDetailsInformationSection.orderStatus}}" stepKey="checkOrderStatusForUSSource1"/>
         <waitForText userInput="Shipped 10" selector="{{AdminOrderItemsOrderedSection.itemQty('1')}}" stepKey="checkShippedQuantityForUSSource1"/>
         <!--Verify product quantity.-->
+        <magentoCron stepKey="runCron"/>
+        <magentoCron stepKey="runCronAgain"/>
         <amOnPage url="{{AdminProductIndexPage.url}}" stepKey="navigateToProductIndexPageForCheckProductQtyAfterCreateShipment"/>
         <actionGroup ref="AdminGridFilterSearchResultsByInput" stepKey="findSimpleProductBySkuToCheckQtyAfterCreateShipment">
             <argument name="selector" value="AdminProductGridFilterSection.skuFilter"/>
