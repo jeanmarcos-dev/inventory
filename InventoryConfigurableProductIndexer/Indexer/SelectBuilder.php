@@ -8,11 +8,11 @@ declare(strict_types=1);
 namespace Magento\InventoryConfigurableProductIndexer\Indexer;
 
 use Magento\Catalog\Api\Data\ProductInterface;
-use Magento\CatalogInventory\Api\StockConfigurationInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Select;
 use Magento\Framework\EntityManager\MetadataPool;
 use Magento\InventoryCatalogApi\Api\DefaultStockProviderInterface;
+use Magento\InventoryConfigurationApi\Model\InventoryConfigurationInterface;
 use Magento\InventoryIndexer\Indexer\IndexStructure;
 use Magento\InventoryIndexer\Indexer\InventoryIndexer;
 use Magento\InventoryIndexer\Indexer\SiblingSelectBuilderInterface;
@@ -28,7 +28,7 @@ class SelectBuilder implements SiblingSelectBuilderInterface
      * @param IndexNameResolverInterface $indexNameResolver
      * @param MetadataPool $metadataPool
      * @param DefaultStockProviderInterface $defaultStockProvider
-     * @param StockConfigurationInterface $configuration
+     * @param InventoryConfigurationInterface $configuration
      */
     public function __construct(
         private readonly ResourceConnection $resourceConnection,
@@ -36,7 +36,7 @@ class SelectBuilder implements SiblingSelectBuilderInterface
         private readonly IndexNameResolverInterface $indexNameResolver,
         private readonly MetadataPool $metadataPool,
         private readonly DefaultStockProviderInterface $defaultStockProvider,
-        private readonly StockConfigurationInterface $configuration
+        private readonly InventoryConfigurationInterface $configuration
     ) {
     }
 

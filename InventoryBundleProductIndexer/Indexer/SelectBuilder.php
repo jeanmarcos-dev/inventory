@@ -8,10 +8,10 @@ declare(strict_types=1);
 namespace Magento\InventoryBundleProductIndexer\Indexer;
 
 use Magento\Bundle\Model\Product\Type as BundleProductType;
-use Magento\CatalogInventory\Api\StockConfigurationInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Select;
 use Magento\InventoryCatalogApi\Api\DefaultStockProviderInterface;
+use Magento\InventoryConfigurationApi\Model\InventoryConfigurationInterface;
 use Magento\InventoryIndexer\Indexer\IndexStructure;
 use Magento\InventoryIndexer\Indexer\SiblingSelectBuilderInterface;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexAlias;
@@ -40,13 +40,13 @@ class SelectBuilder implements SiblingSelectBuilderInterface
      * @param ResourceConnection $resourceConnection
      * @param DefaultStockProviderInterface $defaultStockProvider
      * @param OptionsStatusSelectBuilder $optionsStatusSelectBuilder
-     * @param StockConfigurationInterface $configuration
+     * @param InventoryConfigurationInterface $configuration
      */
     public function __construct(
         ResourceConnection $resourceConnection,
         DefaultStockProviderInterface $defaultStockProvider,
         OptionsStatusSelectBuilder $optionsStatusSelectBuilder,
-        private readonly StockConfigurationInterface $configuration
+        private readonly InventoryConfigurationInterface $configuration
     ) {
         $this->resourceConnection = $resourceConnection;
         $this->defaultStockProvider = $defaultStockProvider;
