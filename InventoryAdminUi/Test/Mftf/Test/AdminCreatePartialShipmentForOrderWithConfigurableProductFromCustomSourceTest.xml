@@ -146,10 +146,7 @@
             <click selector="{{AdminGridMainControls.saveAndContinue}}" stepKey="saveDefaultStock"/>
             <!-- Delete configurable product created via UI -->
             <helper class="Magento\Catalog\Test\Mftf\Helper\ProductApiHelper" method="deleteAllProductsApi" stepKey="deleteAllProductsViaApi"/>
-            <amOnPage url="{{AdminManageStockPage.url}}" stepKey="goToInventoryStockGridToClearFilters"/>
-            <waitForPageLoad stepKey="waitForInventoryStockGridToLoad"/>
-            <conditionalClick selector="{{AdminDataGridHeaderSection.clearFilters}}" dependentSelector="{{AdminDataGridHeaderSection.clearFilters}}" visible="true" stepKey="clearInventoryStockGridFilters"/>
-            <waitForPageLoad stepKey="waitAfterClearInventoryStockFilters"/>
+            <actionGroup ref="AdminManageStockGridClearFiltersActionGroup" stepKey="clearManageStockGridFiltersAfter"/>
             <actionGroup ref="NavigateToAndResetProductGridToDefaultViewActionGroup" stepKey="clearProductGridFilters"/>
             <actionGroup ref="AdminOrdersGridClearFiltersActionGroup" stepKey="clearOrdersGridFilters"/>
             <actionGroup ref="AdminLogoutActionGroup" stepKey="logoutOfAdmin"/>
