@@ -35,6 +35,8 @@ use Magento\TestFramework\TestCase\GraphQlAbstract;
 /**
  * Test coverage of extension of Quote Graph Ql.
  * Test possibility to pass Pickup Location Code to Shipping Address.
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class PickupLocationForShippingTest extends GraphQlAbstract
 {

@@ -33,6 +33,8 @@ use PHPUnit\Framework\Attributes\TestWith;
 
 /**
  * Test for bundle product stock_status
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class BundleProductStockStatusTest extends GraphQlAbstract
 {

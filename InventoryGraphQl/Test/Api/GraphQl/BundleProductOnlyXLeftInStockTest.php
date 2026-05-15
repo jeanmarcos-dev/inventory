@@ -26,6 +26,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Test for bundle product only x left in stock
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class BundleProductOnlyXLeftInStockTest extends GraphQlAbstract
 {
