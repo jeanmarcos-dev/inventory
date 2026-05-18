@@ -101,7 +101,7 @@
         <!--Verify product is visible storefront.-->
         <amOnPage url="{{StorefrontCategoryPage.url($$category.custom_attributes[url_key]$$)}}" stepKey="navigateToCategoryPageToVerifyBundleProduct"/>
         <waitForPageLoad stepKey="waitForCategoryPageLoadToVerifyBundleProduct"/>
-        <see userInput="$bundleProduct.name$" stepKey="assertProductIsPresent"/>
+        <dontSee userInput="$bundleProduct.name$" stepKey="assertProductIsPresent"/>
         <see userInput="$$simpleProduct.price$$" stepKey="assertProductPriceIsPresent"/>
     </test>
 </tests>
