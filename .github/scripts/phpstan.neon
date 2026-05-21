@@ -42,6 +42,8 @@ parameters:
         - '#Call to an undefined static method#'
         # Constants defined in interfaces (stubs have no constants)
         - '#Access to undefined constant#'
+        # Constants on classes not present in the sparse-clone
+        - '#Access to constant [a-zA-Z0-9_]+ on an unknown class#'
         # Variable defined in phtml template context
         - '#Variable \$block might not be defined#'
         - '#Variable \$escaper might not be defined#'
