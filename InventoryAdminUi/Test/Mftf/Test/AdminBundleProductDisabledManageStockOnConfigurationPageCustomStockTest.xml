@@ -103,7 +103,7 @@
         <!--Verify product is not visible storefront.-->
         <amOnPage url="{{StorefrontCategoryPage.url($$category.custom_attributes[url_key]$$)}}" stepKey="navigateToCategoryPage"/>
         <waitForPageLoad stepKey="waitForCategoryPageLoad"/>
-        <see userInput="$bundleProduct.name$" stepKey="assertProductIsPresent1"/>
+        <waitForText userInput="$bundleProduct.name$" stepKey="assertProductIsPresent1"/>
         <!--Disable "Manage Stock" in configuration.-->
         <magentoCLI command="config:set {{TurnOffManageStockConfig.path}} {{TurnOffManageStockConfig.value}}" stepKey="disableManageStock"/>
         <actionGroup ref="CliIndexerReindexActionGroup" stepKey="reindex">
