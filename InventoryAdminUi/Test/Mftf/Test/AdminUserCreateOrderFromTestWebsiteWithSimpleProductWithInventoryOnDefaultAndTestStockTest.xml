@@ -88,7 +88,10 @@
             <actionGroup ref="CliCacheFlushActionGroup" stepKey="flushCache">
                 <argument name="tags" value=""/>
             </actionGroup>
-        </after>
+            <!--Clear filter product listing grid-->
+            <actionGroup ref="AdminOpenCatalogProductPageActionGroup" stepKey="goToProductCatalogPageBeforeClearFilters"/>
+            <actionGroup ref="ClearFiltersAdminProductGridActionGroup" stepKey="clearProductGridFilters"/>
+</after>
         <actionGroup ref="AdminProductPageOpenByIdActionGroup" stepKey="goToProduct1">
             <argument name="productId" value="$createProduct1.id$"/>
         </actionGroup>
