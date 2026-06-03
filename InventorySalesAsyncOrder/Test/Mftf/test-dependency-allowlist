@@ -5,3 +5,6 @@ CliConsumerStartActionGroup
 AssertRejectedOrderInGridActionGroup
 AsyncOrderStockReservationTest
 AssertProcessedOrderInGridActionGroup
+
+AdminOpenCatalogProductPageActionGroup
+ClearFiltersAdminProductGridActionGroup

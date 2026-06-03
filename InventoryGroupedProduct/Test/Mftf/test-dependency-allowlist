@@ -7,3 +7,6 @@ _defaultSource
 AdminProductSourcesGrid
 UnassignSourceFromProductActionGroup
 CliConsumerStartActionGroup
+
+AdminOpenCatalogProductPageActionGroup
+ClearFiltersAdminProductGridActionGroup
