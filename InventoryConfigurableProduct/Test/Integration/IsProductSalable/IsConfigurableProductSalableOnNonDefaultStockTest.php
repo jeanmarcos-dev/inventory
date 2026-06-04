@@ -71,8 +71,12 @@ class IsConfigurableProductSalableOnNonDefaultStockTest extends TestCase
             StockSalesChannelsFixture::class,
             ['stock_id' => '$stock.stock_id$', 'sales_channels' => ['$website2.code$']]
         ),
-        DataFixture(ProductFixture::class, ['sku' => 'child-salable-1', 'website_ids' => ['1', '$website2.id$']], 'child1'),
-        DataFixture(ProductFixture::class, ['sku' => 'child-salable-2', 'website_ids' => ['1', '$website2.id$']], 'child2'),
+        DataFixture(
+            ProductFixture::class,
+            ['sku' => 'child-salable-1', 'website_ids' => ['1', '$website2.id$']], 'child1'),
+        DataFixture(
+            ProductFixture::class,
+            ['sku' => 'child-salable-2', 'website_ids' => ['1', '$website2.id$']], 'child2'),
         DataFixture(AttributeFixture::class, as: 'attr'),
         DataFixture(
             ConfigurableProductFixture::class,
@@ -177,8 +181,12 @@ class IsConfigurableProductSalableOnNonDefaultStockTest extends TestCase
             StockSalesChannelsFixture::class,
             ['stock_id' => '$stockUs.stock_id$', 'sales_channels' => ['$website2.code$']]
         ),
-        DataFixture(ProductFixture::class, ['sku' => 'child-per-stock-1', 'website_ids' => ['1', '$website2.id$']], 'child1'),
-        DataFixture(ProductFixture::class, ['sku' => 'child-per-stock-2', 'website_ids' => ['1', '$website2.id$']], 'child2'),
+        DataFixture(
+            ProductFixture::class,
+            ['sku' => 'child-per-stock-1', 'website_ids' => ['1', '$website2.id$']], 'child1'),
+        DataFixture(
+            ProductFixture::class,
+            ['sku' => 'child-per-stock-2', 'website_ids' => ['1', '$website2.id$']], 'child2'),
         DataFixture(AttributeFixture::class, as: 'attr'),
         DataFixture(
             ConfigurableProductFixture::class,
