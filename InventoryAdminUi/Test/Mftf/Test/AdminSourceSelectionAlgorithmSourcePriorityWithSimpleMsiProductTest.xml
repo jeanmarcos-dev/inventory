@@ -34,34 +34,23 @@
 
             <createData entity="SourceStockLinked1" stepKey="linkSourceStock1">
                 <requiredEntity createDataKey="createStock1"/>
+                <requiredEntity createDataKey="createSource4"/>
+            </createData>
+            <createData entity="SourceStockLinked2" stepKey="linkSourceStock2">
+                <requiredEntity createDataKey="createStock1"/>
                 <requiredEntity createDataKey="createSource1"/>
             </createData>
-            <createData entity="SourceStockLinked1" stepKey="linkSourceStock2">
+            <createData entity="SourceStockLinked3" stepKey="linkSourceStock3">
                 <requiredEntity createDataKey="createStock1"/>
                 <requiredEntity createDataKey="createSource2"/>
             </createData>
-            <createData entity="SourceStockLinked1" stepKey="linkSourceStock3">
+            <createData entity="SourceStockLinked4" stepKey="linkSourceStock4">
                 <requiredEntity createDataKey="createStock1"/>
                 <requiredEntity createDataKey="createSource3"/>
-            </createData>
-            <createData entity="SourceStockLinked1" stepKey="linkSourceStock4">
-                <requiredEntity createDataKey="createStock1"/>
-                <requiredEntity createDataKey="createSource4"/>
             </createData>
 
             <actionGroup ref="AdminLoginActionGroup" stepKey="loginAsAdmin"/>
             <waitForPageLoad stepKey="waitForPageLoadAfterLogin"/>
-
-            <actionGroup ref="AdminGoToStockGridFilterResultsByInputEditStock" stepKey="goToStockGridFilterResultsByInputEditStock1">
-                <argument name="filter_selector" value="AdminManageStockGridFilterControls.name"/>
-                <argument name="filter_value" value="$$createStock1.stock[name]$$"/>
-            </actionGroup>
-
-            <dragAndDrop selector1="{{AdminEditStockSourcesSection.rowSourceDrag('3')}}" selector2="{{AdminEditStockSourcesSection.rowSourceDrag('1')}}" stepKey="dragAndDropNameSource4ToSecondPriority"/>
-            <waitForPageLoad stepKey="waitForPageLoad1"/>
-            <dragAndDrop selector1="{{AdminEditStockSourcesSection.rowSourceDrag('0')}}" selector2="{{AdminEditStockSourcesSection.rowSourceDrag('1')}}" stepKey="dragAndDropNameSource4ToHighestPriority"/>
-            <waitForPageLoad stepKey="waitForPageLoad2"/>
-            <click selector="{{AdminGridMainControls.saveAndContinue}}" stepKey="saveCustomStock"/>
 
             <amOnPage url="{{AdminProductIndexPage.url}}" stepKey="navigateToProductGrid"/>
             <waitForPageLoad time="30" stepKey="waitForProductGridPageLoad"/>

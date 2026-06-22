@@ -9,9 +9,9 @@
 	xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/testSchema.xsd">
     <test name="AdminSourceSelectionAlgorithmSourcePriorityWithSimpleMsiProductTest">
         <annotations>
-            <skip>
+           <!-- <skip>
                 <issueId value="MSI-1631"/>
-            </skip>
+            </skip>-->
             <group value="pr_exclude"/>
         </annotations>
     </test>
