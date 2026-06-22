@@ -95,11 +95,11 @@
         <scrollToTopOfPage stepKey="scrollToTopOfPage1"/>
         <searchAndMultiSelectOption selector="{{AdminProductFormSection.categoriesDropdown}}" parameterArray="[$$simpleCategory1.name$$]" requiredAction="true" stepKey="searchAndSelectCategory1"/>
 
-        <fillField selector="{{AdminProductSourcesGrid.rowQty('0')}}" userInput="{{SimpleMsiProduct.quantity}}" stepKey="fillCustomSource1QtyField"/>
-        <fillField selector="{{AdminProductSourcesGrid.rowQty('1')}}" userInput="{{SimpleMsiProduct.quantity}}" stepKey="fillCustomSource2QtyField"/>
-        <fillField selector="{{AdminProductSourcesGrid.rowQty('2')}}" userInput="{{SimpleMsiProduct.quantity}}" stepKey="fillCustomSource3QtyField"/>
-        <fillField selector="{{AdminProductSourcesGrid.rowQty('3')}}" userInput="{{SimpleMsiProduct.quantity}}" stepKey="fillCustomSource4QtyField"/>
-        <fillField selector="{{AdminProductSourcesGrid.rowQty('4')}}" userInput="{{SimpleMsiProduct.quantity}}" stepKey="fillCustomSource5QtyField"/>
+        <fillField selector="{{AdminProductSourcesGrid.rowQty('0')}}" userInput="1000" stepKey="fillCustomSource1QtyField"/>
+        <fillField selector="{{AdminProductSourcesGrid.rowQty('1')}}" userInput="1000" stepKey="fillCustomSource2QtyField"/>
+        <fillField selector="{{AdminProductSourcesGrid.rowQty('2')}}" userInput="1000" stepKey="fillCustomSource3QtyField"/>
+        <fillField selector="{{AdminProductSourcesGrid.rowQty('3')}}" userInput="1000" stepKey="fillCustomSource4QtyField"/>
+        <fillField selector="{{AdminProductSourcesGrid.rowQty('4')}}" userInput="1000" stepKey="fillCustomSource5QtyField"/>
 
         <actionGroup ref="AdminFormSaveAndCloseActionGroup" stepKey="saveAndCloseSimpleMsiProduct"/>
         <waitForPageLoad stepKey="waitForSimpleMsiProductGidPageLoad"/>
@@ -168,12 +168,14 @@
         <click selector="{{AdminSourceSelectionFormSection.proceedToShipment}}" stepKey="createShipment"/>
         <waitForPageLoad stepKey="waitForPageLoad11"/>
 
-        <see selector="{{AdminShipmentOrderInformationSection.orderStatus}}" userInput="Pending" stepKey="seeOrderStatus"/>
+        <waitForText selector="{{AdminShipmentOrderInformationSection.orderStatus}}" userInput="Pending" stepKey="seeOrderStatus"/>
 
-        <actionGroup ref="SeeProductInShipmentItemsActionGroup" stepKey="checkProductInShipment">
-            <argument name="product" value="SimpleMsiProduct"/>
-        </actionGroup>
+        <scrollTo selector="{{AdminShipmentItemsSection.skuColumn}}" stepKey="scrollToShipmentItemsTable"/>
+        <waitForElementVisible selector="{{AdminShipmentItemsSection.skuColumn}}" time="30" stepKey="waitForShipmentItemsVisible"/>
+        <wait time="60" stepKey="waitForSku"/>
+        <see selector=".order-shipment-table .col-product" userInput="$$simpleMsiProduct1.product[name]$$" stepKey="checkProductInShipment"/>
 
+        <waitForText selector="{{AdminShipmentInventorySection.sourceList}}" userInput="$$createSource4.source[name]$$" stepKey="checkSourceNameOnShipmentPage"/>
         <see selector="{{AdminShipmentInventorySection.sourceList}}" userInput="$$createSource4.source[name]$$" stepKey="checkSourceNameOnShipmentPage"/>
 
         <click selector="{{AdminShipmentMainActionsSection.submitShipment}}" stepKey="clickSubmitShipment"/>
