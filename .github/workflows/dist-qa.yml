@@ -64,7 +64,7 @@ jobs:
           composer config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
           composer require --no-interaction \
             magento/magento-coding-standard:^40 \
-            phpmd/phpmd:^3
+            "phpmd/phpmd:^3@dev"
 
       - name: phpcs (Magento2)
         if: steps.changed.outputs.count != '0'
