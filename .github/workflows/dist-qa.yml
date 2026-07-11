@@ -1,0 +1,78 @@
+name: dist QA
+
+# Lean, self-contained quality gate for the jeanmarcos/inventory distribution.
+# Runs php-lint + phpcs (Magento2) + phpmd on the PR's changed PHP files only.
+# No magento/framework and no repo.magento.com auth: phpunit and the framework-
+# dependent PHPMD rules stay in the local QA gate.
+
+on:
+  pull_request:
+    branches: ['dist-**']
+    paths: ['**.php']
+  workflow_dispatch:
+
+concurrency:
+  group: dist-qa-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  static-qa:
+    name: Static QA on changed files
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+
+      - name: Resolve changed PHP files
+        id: changed
+        run: |
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" -- '*.php' > changed.txt || true
+          echo "Changed PHP files:"
+          cat changed.txt || true
+          echo "count=$(grep -c . changed.txt || echo 0)" >> "$GITHUB_OUTPUT"
+
+      - name: PHP lint
+        if: steps.changed.outputs.count != '0'
+        run: while IFS= read -r f; do [ -n "$f" ] && php -l "$f"; done < changed.txt
+
+      - name: Cache Composer
+        if: steps.changed.outputs.count != '0'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer
+          key: dist-qa-tools-${{ hashFiles('.github/workflows/dist-qa.yml') }}
+
+      - name: Install QA tools
+        if: steps.changed.outputs.count != '0'
+        run: |
+          mkdir -p .ci-tools && cd .ci-tools
+          composer init --no-interaction --name=jeanmarcos/dist-qa-tools >/dev/null
+          composer config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+          composer require --no-interaction --quiet \
+            squizlabs/php_codesniffer:^3.13 \
+            magento/magento-coding-standard:^40 \
+            phpmd/phpmd:^3
+
+      - name: phpcs (Magento2)
+        if: steps.changed.outputs.count != '0'
+        run: .ci-tools/vendor/bin/phpcs --standard=Magento2 -p $(tr '\n' ' ' < changed.txt)
+
+      - name: phpmd
+        if: steps.changed.outputs.count != '0'
+        run: |
+          .ci-tools/vendor/bin/phpmd analyze --no-progress --format github \
+            --ruleset .github/phpmd-ruleset.xml -- $(tr '\n' ' ' < changed.txt)
