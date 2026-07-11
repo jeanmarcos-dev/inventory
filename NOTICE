@@ -1,0 +1,42 @@
+jeanmarcos/inventory
+====================
+
+This distribution is a derivative work based on the Magento Multi-Source
+Inventory (MSI) modules from the "magento/inventory" project.
+
+Original work:
+  Copyright Adobe (formerly Magento, Inc.)
+  All Rights Reserved.
+  Source: https://github.com/magento/inventory
+
+The original modules are dual-licensed under the Open Software License
+version 3.0 (OSL-3.0) and the Academic Free License version 3.0 (AFL-3.0).
+See LICENSE.txt (OSL-3.0) and LICENSE_AFL.txt (AFL-3.0) for the full texts.
+
+This distribution is redistributed under the terms of the Academic Free
+License version 3.0 (AFL-3.0).
+
+This branch targets Magento Open Source 2.4.7 (MSI baseline for that release).
+
+MODIFICATIONS
+-------------
+This is a MODIFIED version of the Original Work. Changes relative to the
+upstream "magento/inventory" project include, but are not limited to:
+
+  * Curated community bug fixes and performance improvements applied ahead
+    of their acceptance (if any) into the upstream project.
+  * Repackaging the 72 distributed modules under the "jeanmarcos/inventory"
+    Composer package, which replaces the individual "magento/module-inventory-*"
+    packages for Magento 2.4.7.
+  * Removal of the proprietary "InventoryRequisitionList" module, which is
+    NOT covered by the OSL-3.0 / AFL-3.0 open source license.
+
+All Adobe copyright, license and attribution notices present in the original
+source files have been retained, as required by AFL-3.0 Section 6.
+
+TRADEMARKS
+----------
+"Magento" and "Adobe" are trademarks of Adobe Inc. This distribution is NOT
+affiliated with, sponsored by, or endorsed by Adobe. The trademarks are not
+used to promote this distribution; they appear only where required to
+identify the origin of the Original Work, as permitted by AFL-3.0 Section 4.
