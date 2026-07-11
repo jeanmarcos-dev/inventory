@@ -115,7 +115,8 @@ class SelectBuilder implements SelectBuilderInterface
                 . ' AND inventory_stock_item.stock_id = ' . $this->defaultStockProvider->getId(),
                 []
             )
-            ->group(['parent_product_entity.sku']);
+            ->group(['parent_product_entity.sku'])
+            ->order('parent_product_entity.sku ASC');
 
         return $select;
     }
