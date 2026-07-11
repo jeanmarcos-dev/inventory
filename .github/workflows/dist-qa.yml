@@ -62,8 +62,7 @@ jobs:
           mkdir -p .ci-tools && cd .ci-tools
           composer init --no-interaction --name=jeanmarcos/dist-qa-tools >/dev/null
           composer config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
-          composer require --no-interaction --quiet \
-            squizlabs/php_codesniffer:^3.13 \
+          composer require --no-interaction \
             magento/magento-coding-standard:^40 \
             phpmd/phpmd:^3
 
