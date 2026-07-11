@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright 2025 Adobe
- * All Rights Reserved.
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
 declare(strict_types=1);
 
@@ -10,6 +10,7 @@ namespace Magento\InventoryIndexer\Test\Unit\Indexer;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\DB\Select;
+use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\InventoryIndexer\Indexer\SelectBuilder;
 use Magento\InventoryIndexer\Indexer\Stock\ReservationsIndexTable;
 use Magento\InventorySales\Model\ResourceModel\IsStockItemSalableCondition\GetIsStockItemSalableConditionInterface;
@@ -18,24 +19,23 @@ use PHPUnit\Framework\TestCase;
 
 class SelectBuilderTest extends TestCase
 {
-    /**
-     * @var AdapterInterface|MockObject
-     */
-    private $connection;
-
-    /**
-     * @var SelectBuilder
-     */
-    private $selectBuilder;
-
-    protected function setUp(): void
+    public function testExecuteOrdersBySkuAscending(): void
     {
-        $this->connection = $this->createMock(AdapterInterface::class);
-        $this->connection->method('getCheckSql')->willReturn('quantity_expression');
-        $this->connection->method('fetchCol')->willReturn(['default']);
+        $connection = $this->createMock(AdapterInterface::class);
+        $connection->method('getCheckSql')->willReturn('quantity_expression');
+        $connection->method('fetchCol')->willReturn(['default']);
+
+        $sourceCodesSelect = $this->createSelfReturningSelect();
+        $indexSelect = $this->createSelfReturningSelect();
+        $connection->method('select')->willReturnOnConsecutiveCalls($sourceCodesSelect, $indexSelect);
+
+        $indexSelect->expects(self::once())
+            ->method('order')
+            ->with('source_item.sku ASC')
+            ->willReturnSelf();
 
         $resourceConnection = $this->createMock(ResourceConnection::class);
-        $resourceConnection->method('getConnection')->willReturn($this->connection);
+        $resourceConnection->method('getConnection')->willReturn($connection);
         $resourceConnection->method('getTableName')->willReturnArgument(0);
 
         $salableCondition = $this->createMock(GetIsStockItemSalableConditionInterface::class);
@@ -44,27 +44,17 @@ class SelectBuilderTest extends TestCase
         $reservationsIndexTable = $this->createMock(ReservationsIndexTable::class);
         $reservationsIndexTable->method('getTableName')->willReturn('reservations_temp');
 
-        $this->selectBuilder = new SelectBuilder(
-            $resourceConnection,
-            $salableCondition,
-            'catalog_product_entity',
-            $reservationsIndexTable
+        $selectBuilder = (new ObjectManager($this))->getObject(
+            SelectBuilder::class,
+            [
+                'resourceConnection' => $resourceConnection,
+                'getIsStockItemSalableCondition' => $salableCondition,
+                'productTableName' => 'catalog_product_entity',
+                'reservationsIndexTable' => $reservationsIndexTable,
+            ]
         );
-    }
 
-    public function testGetSelectOrdersBySkuAscending(): void
-    {
-        $sourceCodesSelect = $this->createSelfReturningSelect();
-        $indexSelect = $this->createSelfReturningSelect();
-        $this->connection->method('select')
-            ->willReturnOnConsecutiveCalls($sourceCodesSelect, $indexSelect);
-
-        $indexSelect->expects(self::once())
-            ->method('order')
-            ->with('source_item.sku ASC')
-            ->willReturnSelf();
-
-        $this->selectBuilder->getSelect(2, ['sku1', 'sku2']);
+        $selectBuilder->execute(2);
     }
 
     /**
