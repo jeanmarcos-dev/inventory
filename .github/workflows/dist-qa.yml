@@ -64,7 +64,7 @@ jobs:
           composer config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
           composer require --no-interaction \
             magento/magento-coding-standard:^40 \
-            "phpmd/phpmd:^3@dev"
+            phpmd/phpmd:^2.15
 
       - name: phpcs (Magento2)
         if: steps.changed.outputs.count != '0'
@@ -73,5 +73,4 @@ jobs:
       - name: phpmd
         if: steps.changed.outputs.count != '0'
         run: |
-          .ci-tools/vendor/bin/phpmd analyze --no-progress --format github \
-            --ruleset .github/phpmd-ruleset.xml -- $(tr '\n' ' ' < changed.txt)
+          .ci-tools/vendor/bin/phpmd "$(paste -sd, changed.txt)" github .github/phpmd-ruleset.xml
