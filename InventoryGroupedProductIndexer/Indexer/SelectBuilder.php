@@ -135,6 +135,8 @@ class SelectBuilder
             'parent_link.link_type_id = ' . Link::LINK_TYPE_GROUPED
         )->group(
             ['parent_product_entity.sku']
+        )->order(
+            'parent_product_entity.sku ASC'
         );
 
         return $select;
