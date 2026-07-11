@@ -13,7 +13,7 @@ use Magento\InventoryConfigurationApi\Exception\SkuIsNotAssignedToStockException
 use Magento\InventorySalesApi\Api\GetProductSalableQtyInterface;
 
 /**
- * Model for getting product qty left.
+ * Returns the product salable qty left for display.
  */
 class GetProductQtyLeft
 {
