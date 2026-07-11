@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright 2025 Adobe
- * All Rights Reserved.
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
 declare(strict_types=1);
 
@@ -12,32 +12,33 @@ use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\DB\Select;
 use Magento\Framework\EntityManager\EntityMetadataInterface;
 use Magento\Framework\EntityManager\MetadataPool;
-use Magento\InventoryConfigurationApi\Model\InventoryConfigurationInterface;
+use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use Magento\InventoryCatalogApi\Api\DefaultStockProviderInterface;
 use Magento\InventoryGroupedProductIndexer\Indexer\SelectBuilder;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexName;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexNameBuilder;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexNameResolverInterface;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class SelectBuilderTest extends TestCase
 {
-    /**
-     * @var AdapterInterface|MockObject
-     */
-    private $connection;
-
-    /**
-     * @var SelectBuilder
-     */
-    private $selectBuilder;
-
-    protected function setUp(): void
+    public function testExecuteOrdersBySkuAscending(): void
     {
-        $this->connection = $this->createMock(AdapterInterface::class);
+        $connection = $this->createMock(AdapterInterface::class);
+
+        $select = $this->createMock(Select::class);
+        foreach (['from', 'joinInner', 'joinLeft', 'where', 'group'] as $method) {
+            $select->method($method)->willReturnSelf();
+        }
+        $connection->method('select')->willReturn($select);
+
+        $select->expects(self::once())
+            ->method('order')
+            ->with('parent_product_entity.sku ASC')
+            ->willReturnSelf();
 
         $resourceConnection = $this->createMock(ResourceConnection::class);
-        $resourceConnection->method('getConnection')->willReturn($this->connection);
+        $resourceConnection->method('getConnection')->willReturn($connection);
         $resourceConnection->method('getTableName')->willReturnArgument(0);
 
         $indexNameBuilder = $this->createMock(IndexNameBuilder::class);
@@ -54,31 +55,20 @@ class SelectBuilderTest extends TestCase
         $metadataPool = $this->createMock(MetadataPool::class);
         $metadataPool->method('getMetadata')->willReturn($metadata);
 
-        $configuration = $this->createMock(InventoryConfigurationInterface::class);
-        $configuration->method('getManageStock')->willReturn(1);
+        $defaultStockProvider = $this->createMock(DefaultStockProviderInterface::class);
+        $defaultStockProvider->method('getId')->willReturn(1);
 
-        $this->selectBuilder = new SelectBuilder(
-            $resourceConnection,
-            $indexNameBuilder,
-            $indexNameResolver,
-            $metadataPool,
-            $configuration
+        $selectBuilder = (new ObjectManager($this))->getObject(
+            SelectBuilder::class,
+            [
+                'resourceConnection' => $resourceConnection,
+                'indexNameBuilder' => $indexNameBuilder,
+                'indexNameResolver' => $indexNameResolver,
+                'metadataPool' => $metadataPool,
+                'defaultStockProvider' => $defaultStockProvider,
+            ]
         );
-    }
 
-    public function testGetSelectOrdersBySkuAscending(): void
-    {
-        $select = $this->createMock(Select::class);
-        foreach (['from', 'joinInner', 'joinLeft', 'where', 'group'] as $method) {
-            $select->method($method)->willReturnSelf();
-        }
-        $this->connection->method('select')->willReturn($select);
-
-        $select->expects(self::once())
-            ->method('order')
-            ->with('parent_product_entity.sku ASC')
-            ->willReturnSelf();
-
-        $this->selectBuilder->getSelect(2, ['grouped_1']);
+        $selectBuilder->execute(2);
     }
 }
