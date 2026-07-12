@@ -15,6 +15,7 @@ use Magento\Framework\DB\Select;
 use Magento\Framework\EntityManager\MetadataPool;
 use Magento\GroupedProduct\Model\ResourceModel\Product\Link;
 use Magento\InventoryCatalogApi\Api\DefaultStockProviderInterface;
+use Magento\InventoryConfigurationApi\Model\InventoryConfigurationInterface;
 use Magento\InventoryIndexer\Indexer\IndexStructure;
 use Magento\InventoryIndexer\Indexer\InventoryIndexer;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\Alias;
@@ -54,10 +55,16 @@ class SelectBuilder
     private DefaultStockProviderInterface $defaultStockProvider;
 
     /**
+     * @var InventoryConfigurationInterface
+     */
+    private InventoryConfigurationInterface $configuration;
+
+    /**
      * @param ResourceConnection $resourceConnection
      * @param IndexNameBuilder $indexNameBuilder
      * @param IndexNameResolverInterface $indexNameResolver
      * @param MetadataPool $metadataPool
+     * @param InventoryConfigurationInterface $configuration
      * @param DefaultStockProviderInterface $defaultStockProvider
      */
     public function __construct(
@@ -65,12 +72,14 @@ class SelectBuilder
         IndexNameBuilder $indexNameBuilder,
         IndexNameResolverInterface $indexNameResolver,
         MetadataPool $metadataPool,
+        InventoryConfigurationInterface $configuration,
         ?DefaultStockProviderInterface $defaultStockProvider = null
     ) {
         $this->resourceConnection = $resourceConnection;
         $this->indexNameBuilder = $indexNameBuilder;
         $this->indexNameResolver = $indexNameResolver;
         $this->metadataPool = $metadataPool;
+        $this->configuration = $configuration;
         $this->defaultStockProvider = $defaultStockProvider ?:
             ObjectManager::getInstance()->get(DefaultStockProviderInterface::class);
     }
@@ -97,6 +106,12 @@ class SelectBuilder
         $metadata = $this->metadataPool->getMetadata(ProductInterface::class);
         $linkField = $metadata->getLinkField();
 
+        $manageStock = '(inventory_stock_item.use_config_manage_stock = 0 AND inventory_stock_item.manage_stock = 1)';
+        if (((int)$this->configuration->getManageStock()) === 1) {
+            $manageStock .= ' OR inventory_stock_item.use_config_manage_stock = 1';
+            $manageStock = "($manageStock)";
+        }
+
         $select = $connection->select();
         $select->from(
             ['parent_link' => $this->resourceConnection->getTableName('catalog_product_link')],
@@ -120,8 +135,8 @@ class SelectBuilder
             'child_stock.sku = child_product_entity.sku',
             [
                 IndexStructure::QUANTITY => 'SUM(child_stock.quantity)',
-                IndexStructure::IS_SALABLE => 'IF(inventory_stock_item.is_in_stock = 0, 0,
-                MAX(child_stock.is_salable))',
+                IndexStructure::IS_SALABLE =>
+                    "IF(inventory_stock_item.is_in_stock = 0 AND $manageStock, 0, MAX(child_stock.is_salable))",
             ]
         )->joinInner(
             ['child_filter_product_entity' => $this->resourceConnection->getTableName('catalog_product_entity')],
