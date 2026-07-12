@@ -216,4 +216,7 @@
             <argument name="cache" xsi:type="object">Magento\InventorySalesApi\Model\CachePool</argument>
         </arguments>
     </type>
+    <type name="Magento\Quote\Model\QuoteManagement">
+        <plugin name="inventory_lock_during_place_order" type="Magento\InventorySales\Plugin\Quote\CartManagementPlugin"/>
+    </type>
 </config>
