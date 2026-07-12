@@ -13,7 +13,8 @@ so no application code changes are required.
 
 ## Exclusive features
 
-- **Source-level reservations** (2.4.9.6+, opt-in): the global setting
+- **Source-level reservations** (opt-in; available from `2.4.9.6`, `2.4.8.8`
+  and `2.4.7.7`): the global setting
   *Stores > Configuration > Catalog > Inventory > Source-Level Reservations*
   (`cataloginventory/source_reservations/enabled`, default off) splits each
   sales reservation into one row per source, allocated across the enabled
@@ -22,7 +23,8 @@ so no application code changes are required.
   oversell gap, and compensations (shipment, cancellation, credit memo) always
   land on the sources the demand was originally allocated to — even when the
   shipment is dispatched from a different source. Toggling the setting requires
-  a full inventory reindex.
+  a full inventory reindex. On the 2.4.7 line the SKU-list reservations reader
+  does not exist upstream, so the feature covers the single-SKU read path only.
 
 ## Installation
 
