@@ -31,6 +31,8 @@ class SaveMultiple
     }
 
     /**
+     * Insert multiple inventory reservations with a single bulk write.
+     *
      * @param ReservationInterface[] $reservations
      * @return void
      */
@@ -44,6 +46,8 @@ class SaveMultiple
             ReservationInterface::SKU,
             ReservationInterface::QUANTITY,
             ReservationInterface::METADATA,
+            ReservationInterface::SOURCE_CODE,
+            ReservationInterface::OBJECT_INCREMENT_ID,
         ];
 
         $data = [];
@@ -54,6 +58,8 @@ class SaveMultiple
                 $reservation->getSku(),
                 $reservation->getQuantity(),
                 $reservation->getMetadata(),
+                $reservation->getSourceCode(),
+                $reservation->getObjectIncrementId(),
             ];
         }
         $connection->insertArray($tableName, $columns, $data);
