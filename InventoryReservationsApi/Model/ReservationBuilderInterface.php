@@ -19,30 +19,56 @@ use Magento\InventoryReservationsApi\Model\ReservationInterface;
 interface ReservationBuilderInterface
 {
     /**
+     * Set stock id
+     *
      * @param int $stockId
      * @return self
      */
     public function setStockId(int $stockId): self;
 
     /**
+     * Set SKU
+     *
      * @param string $sku
      * @return self
      */
     public function setSku(string $sku): self;
 
     /**
+     * Set quantity
+     *
      * @param float $quantity
      * @return self
      */
     public function setQuantity(float $quantity): self;
 
     /**
+     * Set metadata
+     *
      * @param string|null $metadata
      * @return self
      */
     public function setMetadata(string $metadata = null): self;
 
     /**
+     * Set source code
+     *
+     * @param string|null $sourceCode
+     * @return self
+     */
+    public function setSourceCode(?string $sourceCode = null): self;
+
+    /**
+     * Set sales event object increment id
+     *
+     * @param string|null $objectIncrementId
+     * @return self
+     */
+    public function setObjectIncrementId(?string $objectIncrementId = null): self;
+
+    /**
+     * Build the reservation
+     *
      * @return ReservationInterface
      * @throws ValidationException
      */

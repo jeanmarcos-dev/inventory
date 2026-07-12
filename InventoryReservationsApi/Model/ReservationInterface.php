@@ -20,11 +20,13 @@ interface ReservationInterface
     /**
      * Constants for keys of data array. Identical to the name of the getter in snake case
      */
-    const RESERVATION_ID = 'reservation_id';
-    const STOCK_ID = 'stock_id';
-    const SKU = 'sku';
-    const QUANTITY = 'quantity';
-    const METADATA = 'metadata';
+    public const RESERVATION_ID = 'reservation_id';
+    public const STOCK_ID = 'stock_id';
+    public const SKU = 'sku';
+    public const QUANTITY = 'quantity';
+    public const METADATA = 'metadata';
+    public const SOURCE_CODE = 'source_code';
+    public const OBJECT_INCREMENT_ID = 'object_increment_id';
 
     /**
      * Get Reservation Id
@@ -68,4 +70,18 @@ interface ReservationInterface
      * @return string|null
      */
     public function getMetadata(): ?string;
+
+    /**
+     * Get Source Code
+     *
+     * @return string|null
+     */
+    public function getSourceCode(): ?string;
+
+    /**
+     * Get Sales Event Object Increment Id
+     *
+     * @return string|null
+     */
+    public function getObjectIncrementId(): ?string;
 }
