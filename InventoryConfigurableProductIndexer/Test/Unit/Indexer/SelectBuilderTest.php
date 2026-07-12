@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace Magento\InventoryConfigurableProductIndexer\Test\Unit\Indexer;
 
+use Magento\Catalog\Model\ResourceModel\Eav\Attribute;
+use Magento\Eav\Model\Config;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\DB\Select;
@@ -20,6 +22,9 @@ use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexNameBuilder;
 use Magento\InventoryMultiDimensionalIndexerApi\Model\IndexNameResolverInterface;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class SelectBuilderTest extends TestCase
 {
     public function testExecuteOrdersBySkuAscending(): void
@@ -58,6 +63,11 @@ class SelectBuilderTest extends TestCase
         $defaultStockProvider = $this->createMock(DefaultStockProviderInterface::class);
         $defaultStockProvider->method('getId')->willReturn(1);
 
+        $statusAttribute = $this->createMock(Attribute::class);
+        $statusAttribute->method('getId')->willReturn(97);
+        $eavConfig = $this->createMock(Config::class);
+        $eavConfig->method('getAttribute')->willReturn($statusAttribute);
+
         $selectBuilder = (new ObjectManager($this))->getObject(
             SelectBuilder::class,
             [
@@ -66,6 +76,7 @@ class SelectBuilderTest extends TestCase
                 'indexNameResolver' => $indexNameResolver,
                 'metadataPool' => $metadataPool,
                 'defaultStockProvider' => $defaultStockProvider,
+                'eavConfig' => $eavConfig,
             ]
         );
 
