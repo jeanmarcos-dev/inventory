@@ -12,4 +12,11 @@
     <type name="Magento\InventorySales\Model\AreProductsSalable">
         <plugin name="are_products_salable" type="Magento\InventoryIndexer\Plugin\InventorySales\AreProductsSalable"/>
     </type>
+    <type name="Magento\InventorySalesApi\Model\CachePool">
+        <arguments>
+            <argument name="pool" xsi:type="array">
+                <item name="stock_item_data" xsi:type="object">Magento\InventoryIndexer\Model\ResourceModel\GetStockItemsDataCache</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

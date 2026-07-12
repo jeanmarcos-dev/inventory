@@ -19,10 +19,11 @@ declare(strict_types=1);
 namespace Magento\InventoryConfiguration\Model;
 
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\InventoryApi\Model\CacheInterface;
 use Magento\InventoryCatalogApi\Model\GetProductIdsBySkusInterface;
 use Magento\InventoryConfiguration\Model\LegacyStockItem\CacheStorage;
 
-class GetLegacyStockItemsCache implements GetLegacyStockItemsInterface
+class GetLegacyStockItemsCache implements GetLegacyStockItemsInterface, CacheInterface
 {
     /**
      * @param GetLegacyStockItems $getLegacyStockItems
@@ -67,5 +68,23 @@ class GetLegacyStockItemsCache implements GetLegacyStockItemsInterface
             }
         }
         return $stockItems;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function warmup(array $skus, int $stockId): void
+    {
+        $this->execute($skus);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function clean(array $skus, ?int $stockId): void
+    {
+        foreach ($skus as $sku) {
+            $this->cacheStorage->delete((string) $sku);
+        }
     }
 }
