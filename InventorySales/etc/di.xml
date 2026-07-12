@@ -203,4 +203,7 @@
     <preference for="Magento\InventorySalesApi\Api\Data\IsProductSalableForRequestedQtyResultInterface" type="Magento\InventorySales\Model\IsProductSalableForRequestedQtyResult"/>
     <preference for="Magento\InventorySalesApi\Api\Data\IsProductSalableResultInterface" type="Magento\InventorySales\Model\IsProductSalableResult"/>
     <preference for="Magento\InventorySales\Model\ReservationExecutionInterface" type="Magento\InventorySales\Model\ReservationExecution"/>
+    <type name="Magento\Quote\Model\QuoteManagement">
+        <plugin name="inventory_lock_during_place_order" type="Magento\InventorySales\Plugin\Quote\CartManagementPlugin"/>
+    </type>
 </config>
