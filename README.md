@@ -11,6 +11,19 @@ so no application code changes are required.
 > Derived from [magento/inventory](https://github.com/magento/inventory)
 > (Copyright Adobe). Not affiliated with or endorsed by Adobe.
 
+## Exclusive features
+
+- **Source-level reservations** (2.4.9.6+, opt-in): the global setting
+  *Stores > Configuration > Catalog > Inventory > Source-Level Reservations*
+  (`cataloginventory/source_reservations/enabled`, default off) splits each
+  sales reservation into one row per source, allocated across the enabled
+  sources of the stock in priority order. Reservations then affect the salable
+  quantity of **every stock sharing the source**, closing the cross-stock
+  oversell gap, and compensations (shipment, cancellation, credit memo) always
+  land on the sources the demand was originally allocated to — even when the
+  shipment is dispatched from a different source. Toggling the setting requires
+  a full inventory reindex.
+
 ## Installation
 
 ```bash
