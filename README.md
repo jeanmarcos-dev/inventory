@@ -13,31 +13,85 @@ so no application code changes are required.
 
 ## Exclusive features
 
-- **Source-level reservations** (opt-in; available from `2.4.9.6`, `2.4.8.8`
-  and `2.4.7.7`): the global setting
-  *Stores > Configuration > Catalog > Inventory > Source-Level Reservations*
-  (`cataloginventory/source_reservations/enabled`, default off) splits each
-  sales reservation into one row per source, allocated across the enabled
-  sources of the stock in priority order. Reservations then affect the salable
-  quantity of **every stock sharing the source**, closing the cross-stock
-  oversell gap, and compensations (shipment, cancellation, credit memo) always
-  land on the sources the demand was originally allocated to — even when the
-  shipment is dispatched from a different source. Toggling the setting requires
-  a full inventory reindex. On the 2.4.7 line the SKU-list reservations reader
-  does not exist upstream, so the feature covers the single-SKU read path only.
-- **Reservation integrity guards & reconciliation** (available from `2.4.9.10`,
-  `2.4.8.12` and `2.4.7.11`): the reservation ledger enforces its own invariants
-  at write time. A compensation can never release more than the order's
-  outstanding balance, so over-refunds and positive residue can no longer inflate
-  the salable quantity; and a reservation that would oversell is rejected,
-  delegating the decision to the standard salability check so backorders and
-  min-qty are honoured. Opt-in reconciliation then heals orders whose release was
-  never written — a failed or bypassed observer, a third-party state change, or a
-  direct database edit — bringing a terminal order's reservations back to zero
-  without ever over-releasing: a synchronous hook on cancel/refund
-  (`cataloginventory/source_reservations/reconcile_cancel_refund`) and a scheduled
-  sweep plus the `inventory:reservation:reconcile` CLI command
-  (`reconcile_sweep_enabled`, `reconcile_sweep_cron`), all default off.
+Two opt-in capabilities layered on top of upstream MSI. Both are **off by
+default** and are configured under *Stores > Configuration > Catalog >
+Inventory*.
+
+| Feature                                  | 2.4.9      | 2.4.8      | 2.4.7      |
+|------------------------------------------|------------|------------|------------|
+| Source-level reservations                | `2.4.9.6`  | `2.4.8.8`  | `2.4.7.7`  |
+| Reservation integrity & reconciliation   | `2.4.9.10` | `2.4.8.12` | `2.4.7.11` |
+
+### Source-level reservations
+
+Splits each sales reservation into one row **per source**, allocated across the
+stock's enabled sources in priority order — so salable quantity stays correct
+across every stock that shares a source.
+
+```mermaid
+flowchart LR
+  R["Sales reservation<br/>(order line, −5)"] --> SP{"Split by source<br/>(priority order)"}
+  SP --> A["Source A<br/>−3"]
+  SP --> B["Source B<br/>−2"]
+  A --> S1["Stock 1<br/>(A + B)"]
+  B --> S1
+  A --> S2["Stock 2<br/>(A + C)"]
+  S1 --> Q["Salable qty updated on<br/>every stock sharing the source"]
+  S2 --> Q
+```
+
+- **Cross-stock accuracy** — salable quantity is updated on *every* stock that
+  shares a source, closing the cross-stock oversell gap.
+- **Compensations follow the demand** — shipment, cancellation and credit-memo
+  compensations land on the sources the demand was originally allocated to, even
+  when the shipment ships from a different source.
+- **Toggling** the setting requires a full inventory reindex.
+- **2.4.7 caveat** — the SKU-list reservations reader does not exist upstream on
+  the 2.4.7 line, so the feature covers the single-SKU read path only.
+
+| Setting                                        | Default |
+|------------------------------------------------|---------|
+| `cataloginventory/source_reservations/enabled` | off     |
+
+### Reservation integrity guards & reconciliation
+
+The reservation ledger enforces its own invariants **at write time**, and an
+opt-in reconciliation pass heals orders whose release was never written.
+
+```mermaid
+flowchart TD
+  W["Reservation write"] --> G1{"Would oversell?"}
+  G1 -->|yes| REJ["Rejected<br/>(delegates to salability check —<br/>backorders / min-qty honoured)"]
+  G1 -->|no| G2{"Release &gt; order's<br/>outstanding balance?"}
+  G2 -->|yes| CL["Clamped<br/>(no over-refund /<br/>positive residue)"]
+  G2 -->|no| OK["Accepted"]
+```
+
+**Write-time guards** (always enforced once installed):
+
+- **No over-release** — a compensation can never release more than the order's
+  outstanding balance, so over-refunds and positive residue can't inflate
+  salable quantity.
+- **No oversell** — a reservation that would oversell is rejected, delegating the
+  decision to the standard salability check so backorders and min-qty are
+  honoured.
+
+**Reconciliation** (opt-in) brings a terminal order's reservations back to zero
+without ever over-releasing — recovering from a failed or bypassed observer, a
+third-party state change, or a direct database edit.
+
+```mermaid
+flowchart LR
+  H["Sync hook on<br/>cancel / refund"] --> Z["Terminal order's<br/>reservations → 0"]
+  S["Scheduled sweep<br/>(cron)"] --> Z
+  C["CLI:<br/>inventory:reservation:reconcile"] --> Z
+```
+
+| Setting                                                        | Default        |
+|----------------------------------------------------------------|----------------|
+| `cataloginventory/source_reservations/reconcile_cancel_refund` | off            |
+| `cataloginventory/source_reservations/reconcile_sweep_enabled` | off            |
+| `cataloginventory/source_reservations/reconcile_sweep_cron`    | `0 * * * *`    |
 
 ## Installation
 
