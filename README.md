@@ -13,7 +13,7 @@ so no application code changes are required.
 
 ## Exclusive features
 
-Two opt-in capabilities layered on top of upstream MSI. Both are **off by
+Three opt-in capabilities layered on top of upstream MSI. All are **off by
 default** and are configured under *Stores > Configuration > Catalog >
 Inventory*.
 
@@ -21,6 +21,7 @@ Inventory*.
 |------------------------------------------|------------|------------|------------|
 | Source-level reservations                | `2.4.9.6`  | `2.4.8.8`  | `2.4.7.7`  |
 | Reservation integrity & reconciliation   | `2.4.9.10` | `2.4.8.12` | `2.4.7.11` |
+| Supply-side oversell detection           | `2.4.9.11` | `2.4.8.13` | `2.4.7.12` |
 
 ### Source-level reservations
 
@@ -92,6 +93,36 @@ flowchart LR
 | `cataloginventory/source_reservations/reconcile_cancel_refund` | off            |
 | `cataloginventory/source_reservations/reconcile_sweep_enabled` | off            |
 | `cataloginventory/source_reservations/reconcile_sweep_cron`    | `0 * * * *`    |
+
+### Supply-side oversell detection
+
+The write-time guards defend the demand side; this defends the supply side.
+When physical stock is lowered below the reservations already committed against a
+source — an admin edit, an ERP push, a bulk transfer, or a direct database edit —
+the position becomes silently oversold. Detection **never blocks the change**
+(physical stock stays authoritative); it surfaces the oversold position for
+reconciliation.
+
+```mermaid
+flowchart LR
+  WR["Physical stock write<br/>(admin / ERP / import / transfer)"] --> CHK{"physical &lt; committed<br/>reservations?"}
+  DB["Direct database edit"] --> SW["Scheduled sweep<br/>(cron / CLI)"]
+  SW --> CHK
+  CHK -->|yes| AL["Alert: structured log<br/>+ admin inbox notice"]
+  CHK -->|no| OK["No action"]
+```
+
+- **Real-time** — every physical-quantity write path is checked as it happens;
+  the write always succeeds.
+- **Vector-agnostic sweep** — a CLI (`inventory:reservation:detect-oversell`) and
+  an opt-in cron scan all sources regardless of how the quantity dropped, so even
+  direct database edits are caught.
+
+| Setting                                                          | Default     |
+|------------------------------------------------------------------|-------------|
+| `cataloginventory/source_reservations/oversell_detection_enabled`| off         |
+| `cataloginventory/source_reservations/oversell_sweep_enabled`    | off         |
+| `cataloginventory/source_reservations/oversell_sweep_cron`       | `0 * * * *` |
 
 ## Installation
 
