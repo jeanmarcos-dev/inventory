@@ -25,6 +25,19 @@ so no application code changes are required.
   shipment is dispatched from a different source. Toggling the setting requires
   a full inventory reindex. On the 2.4.7 line the SKU-list reservations reader
   does not exist upstream, so the feature covers the single-SKU read path only.
+- **Reservation integrity guards & reconciliation** (available from `2.4.9.10`,
+  `2.4.8.12` and `2.4.7.11`): the reservation ledger enforces its own invariants
+  at write time. A compensation can never release more than the order's
+  outstanding balance, so over-refunds and positive residue can no longer inflate
+  the salable quantity; and a reservation that would oversell is rejected,
+  delegating the decision to the standard salability check so backorders and
+  min-qty are honoured. Opt-in reconciliation then heals orders whose release was
+  never written — a failed or bypassed observer, a third-party state change, or a
+  direct database edit — bringing a terminal order's reservations back to zero
+  without ever over-releasing: a synchronous hook on cancel/refund
+  (`cataloginventory/source_reservations/reconcile_cancel_refund`) and a scheduled
+  sweep plus the `inventory:reservation:reconcile` CLI command
+  (`reconcile_sweep_enabled`, `reconcile_sweep_cron`), all default off.
 
 ## Installation
 
