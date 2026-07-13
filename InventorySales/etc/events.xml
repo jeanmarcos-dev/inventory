@@ -19,4 +19,7 @@
     <event name="sales_model_service_quote_submit_before">
         <observer name="inventory" instance="Magento\CatalogInventory\Observer\SubtractQuoteInventoryObserver" disabled="true"/>
     </event>
+    <event name="sales_order_save_after">
+        <observer name="inventory_sales_reconcile_reservations_on_state_change" instance="Magento\InventorySales\Observer\CatalogInventory\ReconcileReservationsOnOrderStateChangeObserver"/>
+    </event>
 </config>
