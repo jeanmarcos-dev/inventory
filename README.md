@@ -11,6 +11,23 @@ so no application code changes are required.
 > Derived from [magento/inventory](https://github.com/magento/inventory)
 > (Copyright Adobe). Not affiliated with or endorsed by Adobe.
 
+## Compatibility
+
+| Platform                    | Supported line   | How it resolves |
+|-----------------------------|------------------|-----------------|
+| Magento Open Source 2.4.9   | `2.4.9.*`        | replaces `magento/module-inventory-*` |
+| Magento Open Source 2.4.8   | `2.4.8.*`        | replaces `magento/module-inventory-*` |
+| Magento Open Source 2.4.7   | `2.4.7.*`        | replaces `magento/module-inventory-*` |
+| **Mage-OS 3** (2.4.9 base)  | `2.4.9.*` (≥ `2.4.9.12`) | also replaces `mage-os/module-inventory-*` |
+
+On **Mage-OS 3** the same `2.4.9.*` build is used with **no project-level
+changes**. Mage-OS republishes the inventory modules under the `mage-os/` vendor,
+so this package replaces both the `magento/module-inventory-*` and the
+`mage-os/module-inventory-*` names — whichever the platform installs, this
+distribution provides the code. The `magento/framework` requirement resolves
+because `mage-os/framework` declares `replace: {"magento/framework": "103.0.9"}`,
+so the framework gate still selects the 2.4.9 build.
+
 ## Exclusive features
 
 Three opt-in capabilities layered on top of upstream MSI. All are **off by
@@ -140,6 +157,11 @@ Pick the constraint that matches your Magento line:
 
 Each release pins `magento/framework` to a single Magento line, so Composer
 automatically selects the build matching your installation.
+
+On **Mage-OS 3** use the same `2.4.9.*` constraint — no extra configuration. From
+`2.4.9.12` onward this package also replaces the `mage-os/module-inventory-*`
+modules, so earlier project-level `replace` workarounds are no longer needed and
+can be removed.
 
 If you install from the Git repository directly instead of Packagist, add it as
 a VCS repository first:
