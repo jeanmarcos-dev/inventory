@@ -13,12 +13,19 @@ so no application code changes are required.
 
 ## Compatibility
 
-| Platform                    | Supported line   | How it resolves |
-|-----------------------------|------------------|-----------------|
-| Magento Open Source 2.4.9   | `2.4.9.*`        | replaces `magento/module-inventory-*` |
-| Magento Open Source 2.4.8   | `2.4.8.*`        | replaces `magento/module-inventory-*` |
-| Magento Open Source 2.4.7   | `2.4.7.*`        | replaces `magento/module-inventory-*` |
-| **Mage-OS 3** (2.4.9 base)  | `2.4.9.*` (≥ `2.4.9.12`) | also replaces `mage-os/module-inventory-*` |
+**Magento Open Source**
+
+| Line  | Constraint | Inventory packages replaced   |
+|-------|------------|-------------------------------|
+| 2.4.9 | `2.4.9.*`  | `magento/module-inventory-*`  |
+| 2.4.8 | `2.4.8.*`  | `magento/module-inventory-*`  |
+| 2.4.7 | `2.4.7.*`  | `magento/module-inventory-*`  |
+
+**Mage-OS**
+
+| Line                   | Constraint               | Inventory packages replaced                        |
+|------------------------|--------------------------|----------------------------------------------------|
+| Mage-OS 3 (2.4.9 base) | `2.4.9.*` (≥ `2.4.9.12`) | `magento/module-inventory-*` **and** `mage-os/module-inventory-*` |
 
 On **Mage-OS 3** the same `2.4.9.*` build is used with **no project-level
 changes**. Mage-OS republishes the inventory modules under the `mage-os/` vendor,
@@ -30,15 +37,17 @@ so the framework gate still selects the 2.4.9 build.
 
 ## Exclusive features
 
-Three opt-in capabilities layered on top of upstream MSI. All are **off by
-default** and are configured under *Stores > Configuration > Catalog >
-Inventory*.
+Capabilities layered on top of upstream MSI. Some are **always-on** integrity
+guarantees, enforced once installed; the **opt-in** ones are off by default and
+configured under *Stores > Configuration > Catalog > Inventory*.
 
-| Feature                                  | 2.4.9      | 2.4.8      | 2.4.7      |
-|------------------------------------------|------------|------------|------------|
-| Source-level reservations                | `2.4.9.6`  | `2.4.8.8`  | `2.4.7.7`  |
-| Reservation integrity & reconciliation   | `2.4.9.10` | `2.4.8.12` | `2.4.7.11` |
-| Supply-side oversell detection           | `2.4.9.11` | `2.4.8.13` | `2.4.7.12` |
+| Feature                        | Activation | 2.4.9      | 2.4.8      | 2.4.7      |
+|--------------------------------|------------|------------|------------|------------|
+| Source-level reservations      | opt-in     | `2.4.9.6`  | `2.4.8.8`  | `2.4.7.7`  |
+| Source-level concurrency lock  | always on  | `2.4.9.7`  | `2.4.8.9`  | `2.4.7.8`  |
+| Reservation integrity guards   | always on  | `2.4.9.10` | `2.4.8.12` | `2.4.7.11` |
+| Reservation reconciliation     | opt-in     | `2.4.9.10` | `2.4.8.12` | `2.4.7.11` |
+| Supply-side oversell detection | opt-in     | `2.4.9.11` | `2.4.8.13` | `2.4.7.12` |
 
 ### Source-level reservations
 
@@ -63,6 +72,9 @@ flowchart LR
 - **Compensations follow the demand** — shipment, cancellation and credit-memo
   compensations land on the sources the demand was originally allocated to, even
   when the shipment ships from a different source.
+- **Disabled sources stay accounted** — a disabled source keeps its pending
+  reservations in the salable index, so disabling a source no longer hides
+  committed demand and silently inflates salable quantity.
 - **Toggling** the setting requires a full inventory reindex.
 - **2.4.7 caveat** — the SKU-list reservations reader does not exist upstream on
   the 2.4.7 line, so the feature covers the single-SKU read path only.
@@ -70,6 +82,35 @@ flowchart LR
 | Setting                                        | Default |
 |------------------------------------------------|---------|
 | `cataloginventory/source_reservations/enabled` | off     |
+
+### Source-level concurrency lock
+
+Concurrent orders that draw from the same physical source must be serialized on
+that source, or they read the same availability and oversell it. Upstream locks
+place-order per `(sku, stock)`, which only serializes orders on the *same* stock;
+once reservations are allocated per source, two orders on *different* stocks that
+share a source still race on it.
+
+```mermaid
+flowchart TD
+  A["Order A — Stock 1<br/>sources A, B"] --> L["Acquire (sku, source) locks<br/>in one global order"]
+  B["Order B — Stock 2<br/>sources A, C"] --> L
+  L --> Q{"Share a source?"}
+  Q -->|"yes — source A"| SER["Serialized on the shared lock<br/>→ no cross-stock oversell"]
+  Q -->|"no — disjoint sources"| PAR["Placed in parallel"]
+```
+
+- **Per source, not per stock** — locks are taken per `(sku, enabled source)`, so
+  orders on different stocks that share a source contend on that source and can
+  never oversell it.
+- **Deadlock-free** — every order requests its locks in a single global total
+  order, independent of the allocation algorithm, so a shared lock is always
+  requested in the same position. Orders with disjoint source sets still place
+  fully in parallel; acquisition retries a bounded number of times on timeout.
+- **Every placement path** — the lock wraps order *submission*, so front-end and
+  API checkout **and** admin order creation are all covered.
+- **2.4.7 / 2.4.8** — these lines ship no place-order oversell lock upstream at
+  all, so this also backports the base protection they were missing.
 
 ### Reservation integrity guards & reconciliation
 
@@ -93,6 +134,9 @@ flowchart TD
 - **No oversell** — a reservation that would oversell is rejected, delegating the
   decision to the standard salability check so backorders and min-qty are
   honoured.
+- **Atomic under concurrency** — the guards evaluate inside the source-level lock
+  above, so the check and the write stay atomic even when orders are placed
+  concurrently.
 
 **Reconciliation** (opt-in) brings a terminal order's reservations back to zero
 without ever over-releasing — recovering from a failed or bypassed observer, a
