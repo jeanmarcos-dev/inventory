@@ -48,6 +48,7 @@ configured under *Stores > Configuration > Catalog > Inventory*.
 | Reservation integrity guards   | always on  | `2.4.9.10` | `2.4.8.12` | `2.4.7.11` |
 | Reservation reconciliation     | opt-in     | `2.4.9.10` | `2.4.8.12` | `2.4.7.11` |
 | Supply-side oversell detection | opt-in     | `2.4.9.11` | `2.4.8.13` | `2.4.7.12` |
+| Storefront stock visualizer    | opt-in     | `2.4.9.13` | —          | —          |
 
 ### Source-level reservations
 
@@ -184,6 +185,53 @@ flowchart LR
 | `cataloginventory/source_reservations/oversell_detection_enabled`| off         |
 | `cataloginventory/source_reservations/oversell_sweep_enabled`    | off         |
 | `cataloginventory/source_reservations/oversell_sweep_cron`       | `0 * * * *` |
+
+### Storefront stock visualizer
+
+Upstream shows only a coarse in-stock / out-of-stock badge on the product page.
+This surfaces how much is actually salable — as a traffic-light level or an exact
+quantity, for the whole product or broken down per source — while keeping the
+page cacheable. It ships as the additive `Magento_InventoryStockVisualizer`
+module and replaces no core module.
+
+```mermaid
+flowchart LR
+  D["Demand<br/>AppendReservations"] --> DEC["ResolveSkusToPurge<br/>(shared decider)"]
+  S["Supply<br/>SourceItemsSave / Delete"] --> DEC
+  X["Salability flip<br/>(inventory reindex)"] --> DEC
+  DEC --> DP{"Purge strategy"}
+  DP -->|sync| T["Flush dedicated<br/>inv_stockviz tag"]
+  DP -->|async| Q["Coalescing queue"]
+  Q --> T
+```
+
+- **Level or quantity** — the level (semaphore) display is rendered server-side
+  in the cached page, with no quantity exposed and no AJAX; the quantity display
+  fetches the exact salable number over a cacheable AJAX fragment.
+- **Aggregate or per source** — per-source availability is source-reservation
+  aware (physical quantity netted against the source's reservation balance) and
+  degrades to the physical quantity when source-level reservations are off.
+- **Website-correct** — availability is resolved against the current website's
+  stock server-side, so one website's cached fragment never stands in for
+  another's.
+- **Dedicated-tag invalidation** — a small-blast-radius cache tag is purged on
+  both demand (reservation) and supply (source-item) changes through a shared
+  decider, so the panel stays fresh without over-purging the product page.
+- **Sync or queued purge** — the purge runs inline or, when inventory indexing
+  runs on schedule, offloads to a database-backed queue that coalesces a burst of
+  writes for the same SKU into a single purge.
+
+| Setting                                          | Default     |
+|--------------------------------------------------|-------------|
+| `cataloginventory/stock_visualizer/enabled`      | off         |
+| `cataloginventory/stock_visualizer/display_type` | `level`     |
+| `cataloginventory/stock_visualizer/scope`        | `aggregate` |
+| `cataloginventory/stock_visualizer/async_purge`  | `auto`      |
+
+On deploy the module registers per-product override attributes and a
+message-queue topology, so run `bin/magento setup:upgrade` (and
+`setup:di:compile` for production). When the purge resolves to the queue, run the
+consumer `bin/magento queue:consumers:start inventory.stockvisualizer.purge`.
 
 ## Installation
 
