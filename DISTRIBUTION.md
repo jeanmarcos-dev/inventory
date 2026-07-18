@@ -95,6 +95,7 @@ This mirrors the target Magento version and does not collide with Adobe's own
 
 ## License
 
-Redistributed under **AFL-3.0**. Original Adobe copyright and license notices
-are retained in every source file, as required. See [`LICENSE_AFL.txt`](LICENSE_AFL.txt)
+Redistributed under **AFL-3.0**. Files derived from upstream Magento retain
+Adobe's original copyright and license notices; files original to this fork carry
+their own copyright under **OSL-3.0 / AFL-3.0**. See [`LICENSE_AFL.txt`](LICENSE_AFL.txt)
 and [`NOTICE`](NOTICE).
