@@ -70,6 +70,23 @@ This mirrors the target Magento version and does not collide with Adobe's own
   - Concurrent orders on different stocks sharing a source are not serialized
     against each other (the place-order lock is per stock); totals per stock
     are always preserved.
+- **Storefront stock visualizer** (opt-in, default off): a product-page
+  *Availability* panel driven by MSI, shipped as the additive
+  `Magento_InventoryStockVisualizer` module (no core module is replaced). The
+  global config `cataloginventory/stock_visualizer/enabled` (Stores >
+  Configuration > Catalog > Inventory > Storefront Stock Visualizer) renders a
+  traffic-light level (server-side, no quantity exposed) or the exact salable
+  quantity over a cacheable AJAX fragment, aggregate or broken down per source
+  (source-reservation aware). A dedicated cache tag keeps the panel fresh on both
+  demand (reservation) and supply (source-item) changes; the purge runs
+  synchronously or over a database-backed queue. Notes:
+  - Run `bin/magento setup:upgrade` (registers the per-product attributes and the
+    message-queue topology) and `setup:di:compile` for production.
+  - When the purge strategy resolves to the queue, run the consumer
+    `bin/magento queue:consumers:start inventory.stockvisualizer.purge` (or the
+    standard consumer cron).
+  - See [`InventoryStockVisualizer/README.md`](InventoryStockVisualizer/README.md)
+    for the full configuration and cache-invalidation architecture.
 - The proprietary `InventoryRequisitionList` module is **removed** (not covered by
   the OSL-3.0 / AFL-3.0 open source license).
 
