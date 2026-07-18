@@ -48,7 +48,7 @@ configured under *Stores > Configuration > Catalog > Inventory*.
 | Reservation integrity guards   | always on  | `2.4.9.10` | `2.4.8.12` | `2.4.7.11` |
 | Reservation reconciliation     | opt-in     | `2.4.9.10` | `2.4.8.12` | `2.4.7.11` |
 | Supply-side oversell detection | opt-in     | `2.4.9.11` | `2.4.8.13` | `2.4.7.12` |
-| Storefront stock visualizer    | opt-in     | `2.4.9.13` | —          | —          |
+| Storefront stock visualizer    | opt-in     | `2.4.9.13` | `2.4.8.14` | —          |
 
 ### Source-level reservations
 
