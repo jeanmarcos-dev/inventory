@@ -7,54 +7,62 @@ declare(strict_types=1);
 
 namespace Magento\InventoryStockVisualizer\Model;
 
+use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\InventoryApi\Api\GetSourcesAssignedToStockOrderedByPriorityInterface;
+use Magento\InventoryConfigurationApi\Model\IsSourceItemManagementAllowedForProductTypeInterface;
 use Magento\InventoryReservationsApi\Model\SourceReservationsConfig;
-use Magento\InventorySales\Model\ResourceModel\SourceReservation\GetReservationsQuantityBySkusAndSources;
-use Magento\InventorySales\Model\ResourceModel\SourceReservation\GetSourceItemQuantityBySkusAndSources;
 use Magento\InventorySalesApi\Api\GetProductSalableQtyInterface;
-use Magento\InventoryStockVisualizer\Api\Data\SourceViewInterface;
-use Magento\InventoryStockVisualizer\Api\Data\SourceViewInterfaceFactory;
 use Magento\InventoryStockVisualizer\Api\Data\StockViewInterface;
 use Magento\InventoryStockVisualizer\Api\Data\StockViewInterfaceFactory;
 use Magento\InventoryStockVisualizer\Api\GetStockViewInterface;
+use Magento\InventoryStockVisualizer\Model\Availability\CompositeViewBuilder;
+use Magento\InventoryStockVisualizer\Model\Availability\SourceViewBuilder;
 
 /**
  * Default availability-quantity provider.
+ *
+ * Routes by product type: stockable products resolve their exact salable quantity (and, when
+ * per-source scope is on, the per-source breakdown); composite products delegate to the
+ * composite view builder for a per-child or aggregate-status view.
  */
 class GetStockView implements GetStockViewInterface
 {
     /**
      * @param GetProductSalableQtyInterface $getProductSalableQty
-     * @param GetSourcesAssignedToStockOrderedByPriorityInterface $getSourcesAssignedToStock
-     * @param GetSourceItemQuantityBySkusAndSources $getSourceItemQuantity
-     * @param GetReservationsQuantityBySkusAndSources $getSourceReservations
      * @param SourceReservationsConfig $sourceReservationsConfig
      * @param Config $config
      * @param StockViewInterfaceFactory $stockViewFactory
-     * @param SourceViewInterfaceFactory $sourceViewFactory
      * @param EventManagerInterface $eventManager
+     * @param IsSourceItemManagementAllowedForProductTypeInterface $isSourceItemManagementAllowed
+     * @param ProductRepositoryInterface $productRepository
+     * @param SourceViewBuilder $sourceViewBuilder
+     * @param CompositeViewBuilder $compositeViewBuilder
      */
     public function __construct(
         private readonly GetProductSalableQtyInterface $getProductSalableQty,
-        private readonly GetSourcesAssignedToStockOrderedByPriorityInterface $getSourcesAssignedToStock,
-        private readonly GetSourceItemQuantityBySkusAndSources $getSourceItemQuantity,
-        private readonly GetReservationsQuantityBySkusAndSources $getSourceReservations,
         private readonly SourceReservationsConfig $sourceReservationsConfig,
         private readonly Config $config,
         private readonly StockViewInterfaceFactory $stockViewFactory,
-        private readonly SourceViewInterfaceFactory $sourceViewFactory,
-        private readonly EventManagerInterface $eventManager
+        private readonly EventManagerInterface $eventManager,
+        private readonly IsSourceItemManagementAllowedForProductTypeInterface $isSourceItemManagementAllowed,
+        private readonly ProductRepositoryInterface $productRepository,
+        private readonly SourceViewBuilder $sourceViewBuilder,
+        private readonly CompositeViewBuilder $compositeViewBuilder
     ) {
     }
 
     /**
      * @inheritdoc
      */
-    public function execute(string $sku, int $stockId): StockViewInterface
+    public function execute(string $sku, int $stockId, ?string $typeId = null): StockViewInterface
     {
         $slrEnabled = $this->sourceReservationsConfig->isEnabled();
+        $typeId = $this->resolveTypeId($sku, $typeId);
+
+        if ($typeId !== null && !$this->isSourceItemManagementAllowed->execute($typeId)) {
+            return $this->compositeViewBuilder->build($sku, $stockId, $typeId, $slrEnabled);
+        }
 
         try {
             $salableQty = (float) $this->getProductSalableQty->execute($sku, $stockId);
@@ -63,7 +71,7 @@ class GetStockView implements GetStockViewInterface
         }
 
         $sources = $this->config->getScope() === Config::SCOPE_PER_SOURCE
-            ? $this->buildSources($sku, $stockId, $slrEnabled)
+            ? $this->sourceViewBuilder->build($sku, $stockId, $slrEnabled)
             : [];
 
         /** @var StockViewInterface $view */
@@ -84,39 +92,26 @@ class GetStockView implements GetStockViewInterface
     }
 
     /**
-     * Build the per-source availability rows for the stock (all enabled sources).
+     * Resolve the product type id, loading the product only when the caller did not pass it.
+     *
+     * The storefront block passes the type id from the current product to skip a load; on
+     * the AJAX/API path it is null and resolved from the SKU. An unresolvable SKU yields null,
+     * which routes to the stockable path (degrades to qty 0).
      *
      * @param string $sku
-     * @param int $stockId
-     * @param bool $slrEnabled
-     * @return SourceViewInterface[]
+     * @param string|null $typeId
+     * @return string|null
      */
-    private function buildSources(string $sku, int $stockId, bool $slrEnabled): array
+    private function resolveTypeId(string $sku, ?string $typeId): ?string
     {
-        $enabledSources = [];
-        foreach ($this->getSourcesAssignedToStock->execute($stockId) as $source) {
-            if ($source->isEnabled()) {
-                $enabledSources[(string) $source->getSourceCode()] = $source;
-            }
-        }
-        if (!$enabledSources) {
-            return [];
+        if ($typeId !== null) {
+            return $typeId;
         }
 
-        $sourceCodes = array_keys($enabledSources);
-        $physical = $this->getSourceItemQuantity->execute([$sku], $sourceCodes);
-        $reservations = $slrEnabled ? $this->getSourceReservations->execute([$sku], $sourceCodes) : [];
-
-        $rows = [];
-        foreach ($enabledSources as $sourceCode => $source) {
-            $available = ($physical[$sourceCode][$sku] ?? 0.0) + ($reservations[$sourceCode][$sku] ?? 0.0);
-            $rows[] = $this->sourceViewFactory->create([
-                'sourceCode' => (string) $sourceCode,
-                'qty' => max(0.0, $available),
-                'name' => $source->getName() ?: (string) $sourceCode,
-            ]);
+        try {
+            return $this->productRepository->get($sku)->getTypeId();
+        } catch (LocalizedException $e) {
+            return null;
         }
-
-        return $rows;
     }
 }
