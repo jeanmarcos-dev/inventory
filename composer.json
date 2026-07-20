@@ -23,6 +23,7 @@
         "magento/module-graph-ql": "*",
         "magento/module-grouped-product": "*",
         "magento/module-import-export": "*",
+        "magento/module-page-cache": "*",
         "magento/module-product-alert": "*",
         "magento/module-quote": "*",
         "magento/module-quote-graph-ql": "*",
@@ -104,6 +105,7 @@
         "magento/module-inventory-source-deduction-api": "*",
         "magento/module-inventory-source-selection": "*",
         "magento/module-inventory-source-selection-api": "*",
+        "magento/module-inventory-stock-visualizer": "*",
         "magento/module-inventory-swatches-frontend-ui": "*",
         "magento/module-inventory-visual-merchandiser": "*",
         "magento/module-inventory-wishlist": "*"
@@ -179,6 +181,7 @@
             "InventorySourceDeductionApi/registration.php",
             "InventorySourceSelection/registration.php",
             "InventorySourceSelectionApi/registration.php",
+            "InventoryStockVisualizer/registration.php",
             "InventorySwatchesFrontendUi/registration.php",
             "InventoryVisualMerchandiser/registration.php",
             "InventoryWishlist/registration.php"
@@ -252,6 +255,7 @@
             "Magento\\InventorySourceDeductionApi\\": "InventorySourceDeductionApi/",
             "Magento\\InventorySourceSelectionApi\\": "InventorySourceSelectionApi/",
             "Magento\\InventorySourceSelection\\": "InventorySourceSelection/",
+            "Magento\\InventoryStockVisualizer\\": "InventoryStockVisualizer/",
             "Magento\\InventorySwatchesFrontendUi\\": "InventorySwatchesFrontendUi/",
             "Magento\\InventoryVisualMerchandiser\\": "InventoryVisualMerchandiser/",
             "Magento\\InventoryWishlist\\": "InventoryWishlist/",
