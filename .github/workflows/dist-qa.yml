@@ -73,4 +73,11 @@ jobs:
       - name: phpmd
         if: steps.changed.outputs.count != '0'
         run: |
-          .ci-tools/vendor/bin/phpmd "$(paste -sd, changed.txt)" github .github/phpmd-ruleset.xml
+          # Mirror Magento's static suite: mess-detection targets production code, not tests
+          # (test doubles inflate coupling by design).
+          grep -v '/Test/' changed.txt > phpmd.txt || true
+          if [ -s phpmd.txt ]; then
+            .ci-tools/vendor/bin/phpmd "$(paste -sd, phpmd.txt)" github .github/phpmd-ruleset.xml
+          else
+            echo "No non-test PHP files changed; skipping phpmd."
+          fi
