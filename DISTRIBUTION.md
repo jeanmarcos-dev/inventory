@@ -77,7 +77,10 @@ This mirrors the target Magento version and does not collide with Adobe's own
   Configuration > Catalog > Inventory > Storefront Stock Visualizer) renders a
   traffic-light level (server-side, no quantity exposed) or the exact salable
   quantity over a cacheable AJAX fragment, aggregate or broken down per source
-  (source-reservation aware). A dedicated cache tag keeps the panel fresh on both
+  (source-reservation aware). Composite products resolve their availability by
+  type — the selected configurable variant, the sellable bundle count, a
+  per-component breakdown, or an aggregate in-stock status — each selectable in
+  the admin. A dedicated cache tag keeps the panel fresh on both
   demand (reservation) and supply (source-item) changes; the purge runs
   synchronously or over a database-backed queue. Notes:
   - Run `bin/magento setup:upgrade` (registers the per-product attributes and the
