@@ -16,15 +16,20 @@ use Magento\InventoryCatalog\Model\GetStockIdForCurrentWebsite;
 use Magento\InventoryCatalogApi\Model\GetProductIdsBySkusInterface;
 use Magento\InventoryCatalogApi\Model\GetSkusByProductIdsInterface;
 use Magento\InventoryStockVisualizer\Api\GetStockViewInterface;
+use Magento\InventoryStockVisualizer\Model\Availability\GetGroupedSetsMax;
 use Magento\InventoryStockVisualizer\Model\Cache\CacheTag;
 use Magento\InventoryStockVisualizer\Model\Config;
 use Magento\InventoryStockVisualizer\Model\StockViewSerializer;
 use Magento\PageCache\Model\Config as PageCacheConfig;
 
 /**
- * Return the quantity availability of a product as a cacheable, tag-purgeable JSON fragment.
+ * Return the per-child availability of a composite product as a cacheable, tag-purgeable
+ * JSON fragment, so the volatile child quantities never sit in the product page cache.
+ *
+ * The fragment is tagged with each child's dedicated purge tag: a stock change on one child
+ * invalidates exactly the composites that list it, leaving the product page untouched.
  */
-class View implements HttpGetActionInterface
+class Children implements HttpGetActionInterface
 {
     /**
      * Default public lifetime when neither the feature nor the FPC define one.
@@ -39,8 +44,9 @@ class View implements HttpGetActionInterface
      * @param StockViewSerializer $stockViewSerializer
      * @param GetStockIdForCurrentWebsite $getStockIdForCurrentWebsite
      * @param GetProductIdsBySkusInterface $getProductIdsBySkus
-     * @param ScopeConfigInterface $scopeConfig
      * @param GetSkusByProductIdsInterface $getSkusByProductIds
+     * @param GetGroupedSetsMax $getGroupedSetsMax
+     * @param ScopeConfigInterface $scopeConfig
      */
     public function __construct(
         private readonly RequestInterface $request,
@@ -50,17 +56,14 @@ class View implements HttpGetActionInterface
         private readonly StockViewSerializer $stockViewSerializer,
         private readonly GetStockIdForCurrentWebsite $getStockIdForCurrentWebsite,
         private readonly GetProductIdsBySkusInterface $getProductIdsBySkus,
-        private readonly ScopeConfigInterface $scopeConfig,
-        private readonly GetSkusByProductIdsInterface $getSkusByProductIds
+        private readonly GetSkusByProductIdsInterface $getSkusByProductIds,
+        private readonly GetGroupedSetsMax $getGroupedSetsMax,
+        private readonly ScopeConfigInterface $scopeConfig
     ) {
     }
 
     /**
-     * Resolve the availability for the requested SKU and emit it as a cacheable fragment.
-     *
-     * The stock and product id are derived server-side from the website context and the
-     * SKU, so request-supplied ids cannot decouple the cache tag from the data or flood
-     * the cache key. Level mode never reaches here (guarded), so quantities never leak.
+     * Resolve the composite children availability and emit it as a purge-tagged JSON fragment.
      *
      * @return Json
      */
@@ -79,34 +82,83 @@ class View implements HttpGetActionInterface
         try {
             $stockId = $this->getStockIdForCurrentWebsite->execute();
             $view = $this->getStockView->execute($sku, $stockId);
-            $data = $this->stockViewSerializer->serialize($view);
-            $productId = $this->resolveProductId($sku);
         } catch (\Throwable $e) {
             return $this->uncacheable($result)->setData(['data' => null]);
         }
 
-        if ($productId <= 0) {
+        if (!$view->isAggregateOnly()) {
             return $this->uncacheable($result)->setData(['data' => null]);
         }
 
-        return $this->cacheable($result, $productId)->setData(['data' => $data]);
+        $data = $this->stockViewSerializer->serializeChildren($view);
+        $sets = $this->resolveSets($sku, $stockId);
+        if ($sets !== null) {
+            $data['sets'] = $sets;
+        }
+
+        $productIds = $this->resolveChildProductIds($data['children']);
+        if ($productIds === []) {
+            return $this->uncacheable($result)->setData(['data' => $data]);
+        }
+
+        return $this->cacheable($result, $productIds)->setData(['data' => $data]);
     }
 
     /**
-     * Resolve the real product id for a SKU, or 0 when it cannot be resolved.
+     * Maximum complete grouped sets, when the calculator applies to this product, else null.
      *
      * @param string $sku
-     * @return int
+     * @param int $stockId
+     * @return int|null
      */
-    private function resolveProductId(string $sku): int
+    private function resolveSets(string $sku, int $stockId): ?int
     {
-        $ids = $this->getProductIdsBySkus->execute([$sku]);
+        if (!$this->config->isGroupedSetsCalculatorEnabled()
+            || $this->config->getGroupedMode() !== Config::COMPOSITE_MODE_CHILDREN
+        ) {
+            return null;
+        }
 
-        return (int) ($ids[$sku] ?? 0);
+        $sets = $this->getGroupedSetsMax->execute($sku, $stockId);
+        if ($sets === null) {
+            return null;
+        }
+
+        // Level display exposes no exact numbers, so the set count collapses to a coarse flag.
+        if ($this->config->getDisplayType() === Config::DISPLAY_TYPE_LEVEL) {
+            return $sets > 0 ? 1 : 0;
+        }
+
+        return $sets;
     }
 
     /**
-     * Resolve a SKU from a product id (variant mode sends the selected child id), or '' if unknown.
+     * Resolve the product ids of the listed children for tagging.
+     *
+     * @param array<int,array{sku:string,label:string,salable:bool,qty:float}> $children
+     * @return int[]
+     */
+    private function resolveChildProductIds(array $children): array
+    {
+        $skus = [];
+        foreach ($children as $child) {
+            $skus[] = $child['sku'];
+        }
+        if ($skus === []) {
+            return [];
+        }
+
+        try {
+            $map = $this->getProductIdsBySkus->execute($skus);
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        return array_values(array_map('intval', $map));
+    }
+
+    /**
+     * Resolve a SKU from a product id (composite selected client-side), or '' if unknown.
      *
      * @param int $productId
      * @return string
@@ -127,18 +179,23 @@ class View implements HttpGetActionInterface
     }
 
     /**
-     * Apply public cache headers and the dedicated purge tag.
+     * Apply public cache headers and one purge tag per child product.
      *
      * @param Json $result
-     * @param int $productId
+     * @param int[] $productIds
      * @return Json
      */
-    private function cacheable(Json $result, int $productId): Json
+    private function cacheable(Json $result, array $productIds): Json
     {
         $ttl = $this->config->getTtl() ?: (int) $this->scopeConfig->getValue(PageCacheConfig::XML_PAGECACHE_TTL);
         $ttl = $ttl > 0 ? $ttl : self::DEFAULT_TTL;
 
-        $result->setHeader('X-Magento-Tags', CacheTag::CACHE_TAG . '_' . $productId, true);
+        $tags = [];
+        foreach ($productIds as $productId) {
+            $tags[] = CacheTag::CACHE_TAG . '_' . (int) $productId;
+        }
+
+        $result->setHeader('X-Magento-Tags', implode(',', $tags), true);
         $result->setHeader('Cache-Control', 'public, max-age=' . $ttl . ', s-maxage=' . $ttl, true);
         $result->setHeader('Pragma', 'cache', true);
 
