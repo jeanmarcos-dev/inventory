@@ -48,7 +48,7 @@ configured under *Stores > Configuration > Catalog > Inventory*.
 | Reservation integrity guards   | always on  | `2.4.9.10` | `2.4.8.12` | `2.4.7.11` |
 | Reservation reconciliation     | opt-in     | `2.4.9.10` | `2.4.8.12` | `2.4.7.11` |
 | Supply-side oversell detection | opt-in     | `2.4.9.11` | `2.4.8.13` | `2.4.7.12` |
-| Storefront stock visualizer    | opt-in     | `2.4.9.13` | `2.4.8.14` | —          |
+| Storefront stock visualizer    | opt-in     | `2.4.9.13` | `2.4.8.14` | `2.4.7.13` |
 
 ### Source-level reservations
 
@@ -211,6 +211,11 @@ flowchart LR
 - **Aggregate or per source** — per-source availability is source-reservation
   aware (physical quantity netted against the source's reservation balance) and
   degrades to the physical quantity when source-level reservations are off.
+- **Composite products by type** — configurable, bundle and grouped products
+  resolve their availability by type (the selected variant, the sellable bundle
+  count, a per-component breakdown, or an aggregate in-stock status), each
+  selectable in the admin, instead of the false out-of-stock the type-blind
+  salable-quantity API would otherwise report.
 - **Website-correct** — availability is resolved against the current website's
   stock server-side, so one website's cached fragment never stands in for
   another's.
@@ -226,7 +231,6 @@ flowchart LR
 | `cataloginventory/stock_visualizer/enabled`      | off         |
 | `cataloginventory/stock_visualizer/display_type` | `level`     |
 | `cataloginventory/stock_visualizer/scope`        | `aggregate` |
-| `cataloginventory/stock_visualizer/async_purge`  | `auto`      |
 
 On deploy the module registers per-product override attributes and a
 message-queue topology, so run `bin/magento setup:upgrade` (and
