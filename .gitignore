@@ -1,0 +1,2 @@
+# Local QA tool install created by .github/scripts/dist-qa-local.sh (mirrors the CI's ephemeral .ci-tools).
+/.ci-tools/
