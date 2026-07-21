@@ -80,9 +80,11 @@ This mirrors the target Magento version and does not collide with Adobe's own
   (source-reservation aware). Composite products resolve their availability by
   type — the selected configurable variant, the sellable bundle count, a
   per-component breakdown, or an aggregate in-stock status — each selectable in
-  the admin. A dedicated cache tag keeps the panel fresh on both
-  demand (reservation) and supply (source-item) changes; the purge runs
-  synchronously or over a database-backed queue. Notes:
+  the admin. Out-of-stock products render the status alone: the panel skips the
+  client component, so no call to action is offered and no fragment is requested
+  for an availability the server already resolved to zero. A dedicated cache tag
+  keeps the panel fresh on both demand (reservation) and supply (source-item)
+  changes; the purge runs synchronously or over a database-backed queue. Notes:
   - Run `bin/magento setup:upgrade` (registers the per-product attributes and the
     message-queue topology) and `setup:di:compile` for production.
   - When the purge strategy resolves to the queue, run the consumer
