@@ -216,6 +216,10 @@ flowchart LR
   count, a per-component breakdown, or an aggregate in-stock status), each
   selectable in the admin, instead of the false out-of-stock the type-blind
   salable-quantity API would otherwise report.
+- **Out of stock costs nothing** — when the server has already resolved the
+  product to zero, the panel renders the status alone: no client component is
+  mounted, so no call to action is offered and no fragment is requested for an
+  answer that is already known.
 - **Website-correct** — availability is resolved against the current website's
   stock server-side, so one website's cached fragment never stands in for
   another's.
